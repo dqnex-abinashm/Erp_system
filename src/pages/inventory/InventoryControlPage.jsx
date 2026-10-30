@@ -1,18 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, MoreVertical, ChevronDown } from 'lucide-react';
 import InventoryControlTable from './InventoryControlTable';
 
+const CONTROL_TYPES = [
+  'Stock Adjustment',
+  'Stock Transfer',
+  'Stock Count',
+  'Stock Issue',
+  'Stock Receipt',
+  'Material Return',
+  'Damage/Scrap',
+];
+
 const InventoryControlPage = () => {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [selectedType, setSelectedType] = useState('');
+
   const tabs = [
     { name: 'Items', path: '/inventory' },
-    { name: 'Inventory Control', path: '/inventory/control' }
+    { name: 'Inventory Control', path: '/inventory/control' },
   ];
 
   return (
     <main className="flex-1 overflow-y-auto bg-[#f4f7f9] flex flex-col relative p-1.5 gap-1.5">
-      
+
       {/* Sub Navigation */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm shrink-0 px-8">
         <nav className="flex space-x-1">
@@ -33,17 +46,54 @@ const InventoryControlPage = () => {
           ))}
         </nav>
       </div>
-      
+
       {/* Header */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm shrink-0 px-8 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-1 cursor-pointer">
-          <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block w-fit">
-            Inventory Control
-          </h2>
-          <ChevronDown className="w-5 h-5 text-[#8b5cf6]" />
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((o) => !o)}
+            className="flex items-center space-x-1"
+          >
+            <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent">
+              {selectedType || 'Inventory Control'}
+            </h2>
+            <ChevronDown
+              className={`w-5 h-5 text-[#8b5cf6] transition-transform ${menuOpen ? 'rotate-180' : ''}`}
+            />
+          </button>
+
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+              <div className="absolute left-0 top-full mt-2 z-50 w-56 bg-white rounded-xl shadow-xl border border-gray-100 p-2">
+                {CONTROL_TYPES.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => {
+                      setSelectedType(selectedType === t ? '' : t);
+                      setMenuOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-[13px] text-[#1a233a] ${
+                      selectedType === t
+                        ? 'bg-gradient-to-r from-[#fdf0ee] to-[#eeecfd]'
+                        : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
+
         <div className="flex items-center space-x-3">
-          <button onClick={() => navigate('/inventory/control/new')} className="bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] hover:opacity-90 text-white px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center transition-opacity shadow-sm">
+          <button
+            onClick={() => navigate('/inventory/control/new')}
+            className="bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] hover:opacity-90 text-white px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center transition-opacity shadow-sm"
+          >
             <Plus className="w-3 h-3 mr-1" strokeWidth={2.5} />
             New
           </button>
@@ -55,9 +105,8 @@ const InventoryControlPage = () => {
 
       {/* Table Area */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 overflow-hidden flex flex-col">
-        <InventoryControlTable />
+        <InventoryControlTable selectedType={selectedType} />
       </div>
-
     </main>
   );
 };

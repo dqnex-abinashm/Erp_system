@@ -5,6 +5,12 @@ import { ChevronDown, Plus, MoreHorizontal } from 'lucide-react';
 import CustomerTable from './CustomerTable';
 import { getCustomers } from '../../services/customerlistApi';
 
+const FILTERS = [
+  { label: 'Active', value: 'ACTIVE' },
+  { label: 'In Active', value: 'INACTIVE' },
+  { label: 'Over Due', value: 'OVERDUE' },
+  { label: 'Un-Paid', value: 'UNPAID' },
+];
 
 const CustomerPage = () => {
 
@@ -42,6 +48,10 @@ const CustomerPage = () => {
       totalPages: 0
     });
 
+  const [statusFilter, setStatusFilter] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
+
+
 
   // =====================================================
   // FETCH CUSTOMERS
@@ -61,7 +71,8 @@ const CustomerPage = () => {
             page,
             limit,
             search: searchQuery,
-            status: '',
+            status: ['ACTIVE', 'INACTIVE'].includes(statusFilter) ? statusFilter : '',
+            paymentFilter: ['OVERDUE', 'UNPAID'].includes(statusFilter) ? statusFilter : '',
             sortBy: 'createdAt',
             sortOrder: 'desc'
           });
@@ -106,7 +117,7 @@ const CustomerPage = () => {
 
     fetchCustomers();
 
-  }, [page, limit, searchQuery]);
+  }, [page, limit, searchQuery, statusFilter]);
 
 
   // =====================================================
@@ -114,10 +125,8 @@ const CustomerPage = () => {
   // =====================================================
 
   useEffect(() => {
-
     setPage(1);
-
-  }, [searchQuery]);
+  }, [searchQuery, statusFilter]);
 
 
   // =====================================================
@@ -209,16 +218,43 @@ const CustomerPage = () => {
 
       <div className="flex items-center justify-between px-8 py-3 bg-white border border-gray-200 rounded-xl shadow-sm shrink-0">
 
-        <div className="flex items-center space-x-1 cursor-pointer">
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((o) => !o)}
+            className="flex items-center space-x-1"
+          >
+            <h2 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8]">
+              {FILTERS.find((f) => f.value === statusFilter)?.label || 'All Customer'}
+            </h2>
+            <ChevronDown
+              className={`w-5 h-5 text-[#8b5cf6] transition-transform ${menuOpen ? 'rotate-180' : ''}`}
+            />
+          </button>
 
-          <h2 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8]">
-            All Customer
-          </h2>
-
-          <ChevronDown
-            className="w-5 h-5 text-[#8b5cf6]"
-          />
-
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+              <div className="absolute left-0 top-full mt-2 z-50 w-52 bg-white rounded-xl shadow-xl border border-gray-100 p-2">
+                {FILTERS.map((f) => (
+                  <button
+                    key={f.value}
+                    type="button"
+                    onClick={() => {
+                      setStatusFilter(statusFilter === f.value ? '' : f.value);
+                      setMenuOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-[13px] text-[#1a233a] ${statusFilter === f.value
+                      ? 'bg-gradient-to-r from-[#fdf0ee] to-[#eeecfd]'
+                      : 'hover:bg-gray-50'
+                      }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
 

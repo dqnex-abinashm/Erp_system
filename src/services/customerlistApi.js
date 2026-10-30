@@ -7,27 +7,29 @@ export const getCustomers = async ({
     limit = 10,
     search = '',
     status = '',
+    paymentFilter = '',
     sortBy = 'createdAt',
     sortOrder = 'desc'
 } = {}) => {
 
     const params = new URLSearchParams();
 
-    // Pagination
     params.append('page', String(page));
     params.append('limit', String(limit));
 
-    // Search - only send when entered
     if (search.trim()) {
         params.append('search', search.trim());
     }
 
-    // Status - only send when selected
     if (status) {
         params.append('status', status);
     }
 
-    // Sorting
+    // OVERDUE or UNPAID
+    if (paymentFilter) {
+        params.append('paymentFilter', paymentFilter);
+    }
+
     params.append('sortBy', sortBy);
     params.append('sortOrder', sortOrder);
 

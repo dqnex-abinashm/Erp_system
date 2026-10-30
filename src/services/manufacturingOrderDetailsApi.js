@@ -30,7 +30,7 @@ const request = async (url, options = {}) => {
 export const getManufacturingOrders = async ({
   search = "",
   status = "",
-  limit = 100,
+  limit = 10,
   offset = 0,
 } = {}) => {
   const params = new URLSearchParams();

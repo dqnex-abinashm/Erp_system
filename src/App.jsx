@@ -41,13 +41,11 @@ import InventoryItemDetailPage from './pages/inventory/InventoryItemDetailPage';
 import InventoryControlPage from './pages/inventory/InventoryControlPage';
 import CreateInventoryControlPage from './pages/inventory/CreateInventoryControlPage';
 import InventoryControlDetailPage from './pages/inventory/InventoryControlDetailPage';
-
-// Placeholder for other pages to avoid errors
-const PlaceholderPage = ({ title }) => (
-  <div className="flex-1 flex items-center justify-center text-gray-500 bg-white m-4 rounded-xl border border-gray-100 shadow-sm">
-    <h2 className="text-xl font-medium">{title} Page - Coming Soon</h2>
-  </div>
-);
+import SupplyChainPage from './pages/supply-chain/Supplychain';
+import CreatePackagePage from './pages/supply-chain/Createpackagepage';
+import PackageDetailsPage from './pages/supply-chain/Packagedetailspage';
+import CreateShipmentPage from './pages/supply-chain/Createshipmentpage';
+import ShipmentDetailsPage from './pages/supply-chain/Shipmentdetailspage';
 
 function App() {
   return (
@@ -56,11 +54,11 @@ function App() {
         <Route path="/" element={<MainLayout />}>
           {/* Dashboard Route */}
           <Route index element={<DashboardPage />} />
-          
+
           <Route path="customers" element={<CustomerPage />} />
           <Route path="customers/new" element={<CreateCustomerPage />} />
           <Route path="customers/:customerId" element={<CustomerDetailsPage />} />
-          
+
           <Route path="calendar" element={<ManufacturingCalendarPage />} />
 
           {/* Other routes from sidebar */}
@@ -99,11 +97,12 @@ function App() {
           <Route path="machine" element={<MachinePage />} />
           <Route path="machine/new" element={<CreateMachinePage />} />
           <Route path="machine/:id" element={<MachineDetailsPage />} />
-          <Route path="supply-chain" element={<PlaceholderPage title="Supply Chain" />} />
-          <Route path="accounting" element={<PlaceholderPage title="Accounting" />} />
-          <Route path="hrms" element={<PlaceholderPage title="HRMS" />} />
+          <Route path="supply-chain" element={<SupplyChainPage />} />
+          <Route path="supply-chain/packages/new" element={<CreatePackagePage />} />
+          <Route path="supply-chain/packages/:id" element={<PackageDetailsPage />} />
+          <Route path="supply-chain/shipments/new" element={<CreateShipmentPage />} />
+          <Route path="supply-chain/shipments/:id" element={<ShipmentDetailsPage />} />
           <Route path="user-management" element={<UserManagementPage />} />
-          <Route path="report" element={<PlaceholderPage title="Report" />} />
         </Route>
       </Routes>
     </BrowserRouter>

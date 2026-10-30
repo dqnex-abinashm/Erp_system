@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, MoreHorizontal, ChevronDown, MapPin } from 'lucide-react';
+import { Plus, MoreHorizontal, MapPin } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 
 import { getMachines } from "../../services/machineListApi";
@@ -93,6 +93,8 @@ MACHINE DATA FROM BACKEND
 */
 
   const [machineData, setMachineData] = useState([]);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
 
 
   /*
@@ -183,19 +185,53 @@ LOAD MACHINES FROM BACKEND
    * =======================================================
    */
   const handleSelectAll = () => {
-    if (selectedMachines.length === machineData.length) {
-      setSelectedMachines([]);
-    } else {
-      setSelectedMachines(
-        machineData.map((machine) => machine.id)
+    if (allSelected) {
+      setSelectedMachines((prev) =>
+        prev.filter((id) => !currentPageIds.includes(id))
       );
+    } else {
+      setSelectedMachines((prev) => [
+        ...new Set([...prev, ...currentPageIds])
+      ]);
     }
   };
 
 
+  // Pagination calculations
+  const totalRecords = machineData.length;
+  const totalPages = Math.ceil(totalRecords / limit);
+
+  const startIndex = (page - 1) * limit;
+
+  const paginatedMachines = machineData.slice(
+    startIndex,
+    startIndex + limit
+  );
+
+  // Pagination handlers
+  const handlePreviousPage = () => {
+    if (page > 1) {
+      setPage((currentPage) => currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (page < totalPages) {
+      setPage((currentPage) => currentPage + 1);
+    }
+  };
+
+  // Select all machines on the current page
+  const currentPageIds = paginatedMachines.map(
+    (machine) =>
+      machine.machine_id ??
+      machine.machineId ??
+      machine.id
+  );
+
   const allSelected =
-    machineData.length > 0 &&
-    selectedMachines.length === machineData.length;
+    currentPageIds.length > 0 &&
+    currentPageIds.every((id) => selectedMachines.includes(id));
 
 
   return (
@@ -207,13 +243,11 @@ LOAD MACHINES FROM BACKEND
       <div className="flex items-center justify-between px-8 py-3 bg-white border border-gray-200 rounded-xl shadow-sm shrink-0">
 
         {/* Page Title */}
-        <div className="flex items-center space-x-1 cursor-pointer">
+        <div className="flex items-center">
 
           <h2 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8]">
             All Machine
           </h2>
-
-          <ChevronDown className="w-5 h-5 text-[#8b5cf6]" />
 
         </div>
 
@@ -253,11 +287,13 @@ LOAD MACHINES FROM BACKEND
       {/* =====================================================
           TABLE AREA
           ===================================================== */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 overflow-hidden flex flex-col">
 
-        <div className="flex-1 overflow-x-auto w-full">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 min-h-0 overflow-hidden flex flex-col">
+
+        <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto w-full">
 
           <table className="w-full text-left border-collapse whitespace-nowrap">
+
 
             {/* =================================================
                 TABLE HEADER
@@ -280,43 +316,43 @@ LOAD MACHINES FROM BACKEND
 
 
                 {/* MACHINE CODE */}
-                <th className="py-4 px-3 font-bold text-[#6b778c]">
+                <th className="py-2 px-3 font-bold text-[#6b778c]">
                   Machine Code
                 </th>
 
 
                 {/* MACHINE NAME */}
-                <th className="py-4 px-3 font-bold text-[#6b778c]">
+                <th className="py-2 px-3 font-bold text-[#6b778c]">
                   Machine Name
                 </th>
 
 
                 {/* LOCATION */}
-                <th className="py-4 px-3 font-bold text-[#6b778c]">
+                <th className="py-2 px-3 font-bold text-[#6b778c]">
                   Location
                 </th>
 
 
                 {/* CAPACITY */}
-                <th className="py-4 px-3 font-bold text-[#6b778c]">
+                <th className="py-2 px-3 font-bold text-[#6b778c]">
                   Capacity
                 </th>
 
 
                 {/* OEE */}
-                <th className="py-4 px-3 font-bold text-[#6b778c]">
+                <th className="py-2 px-3 font-bold text-[#6b778c]">
                   OEE
                 </th>
 
 
                 {/* NEXT MAINTENANCE */}
-                <th className="py-4 px-3 font-bold text-[#6b778c]">
+                <th className="py-2 px-3 font-bold text-[#6b778c]">
                   Next Maintenance
                 </th>
 
 
                 {/* STATUS */}
-                <th className="py-4 pr-4 pl-3 font-bold text-[#6b778c]">
+                <th className="py-2 pr-4 pl-3 font-bold text-[#6b778c]">
                   Status
                 </th>
 
@@ -399,7 +435,7 @@ LOAD MACHINES FROM BACKEND
 
               {!loading &&
                 !error &&
-                machineData.map((machine) => (
+                paginatedMachines.map((machine) => (
 
                   <tr
                     key={
@@ -413,7 +449,7 @@ LOAD MACHINES FROM BACKEND
                     {/* CHECKBOX */}
 
                     <td
-                      className="py-4 pl-4 pr-3 text-center"
+                      className="py-2 pl-4 pr-3 text-center"
                       onClick={(e) => e.stopPropagation()}
                     >
 
@@ -449,7 +485,7 @@ LOAD MACHINES FROM BACKEND
                         )
                       }
 
-                      className="py-4 px-3 text-blue-600 font-medium cursor-pointer hover:underline"
+                      className="py-2 px-3 text-blue-600 font-medium cursor-pointer hover:underline"
                     >
                       {machine.machineCode}
                     </td>
@@ -467,7 +503,7 @@ LOAD MACHINES FROM BACKEND
                         )
                       }
 
-                      className="py-4 px-3 text-[#1a233a] font-medium cursor-pointer"
+                      className="py-2 px-3 text-[#1a233a] font-medium cursor-pointer"
                     >
                       {machine.machineName}
                     </td>
@@ -475,7 +511,7 @@ LOAD MACHINES FROM BACKEND
 
                     {/* LOCATION */}
 
-                    <td className="py-4 px-3 text-[#1a233a] font-medium">
+                    <td className="py-2 px-3 text-[#1a233a] font-medium">
 
                       <div className="flex items-center gap-1.5">
 
@@ -494,7 +530,7 @@ LOAD MACHINES FROM BACKEND
 
                     {/* CAPACITY */}
 
-                    <td className="py-4 px-3 text-[#1a233a] font-medium">
+                    <td className="py-2 px-3 text-[#1a233a] font-medium">
 
                       {machine.capacity}
 
@@ -503,7 +539,7 @@ LOAD MACHINES FROM BACKEND
 
                     {/* OEE */}
 
-                    <td className="py-4 px-3">
+                    <td className="py-2 px-3">
 
                       {machine.oee !== null &&
                         machine.oee !== undefined ? (
@@ -533,7 +569,7 @@ LOAD MACHINES FROM BACKEND
 
                     {/* NEXT MAINTENANCE */}
 
-                    <td className="py-4 px-3 text-[#1a233a] font-medium">
+                    <td className="py-2 px-3 text-[#1a233a] font-medium">
 
                       {machine.nextMaintenance === 'Overdue' ? (
 
@@ -560,7 +596,7 @@ LOAD MACHINES FROM BACKEND
 
                     {/* STATUS */}
 
-                    <td className="py-4 pr-4 pl-3">
+                    <td className="py-3 pr-4 pl-3">
 
                       <StatusPill
                         status={machine.status}
@@ -583,33 +619,40 @@ LOAD MACHINES FROM BACKEND
         {/* =====================================================
             FOOTER
             ===================================================== */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-white text-xs text-gray-500 flex justify-between items-center mt-auto">
+        {/* Pagination Footer */}
+        <div className="shrink-0 px-6 py-3 border-t border-gray-100 bg-white text-xs text-gray-500 flex justify-between items-center gap-3">
 
           <span>
-            Showing {machineData.length} machine(s)
+            Showing {paginatedMachines.length} of {totalRecords} machine(s)
           </span>
 
-          <div className="flex items-center gap-2">
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
 
-            <button
-              disabled
-              className="px-3 py-1 border rounded disabled:opacity-40"
-            >
-              Previous
-            </button>
+              <button
+                type="button"
+                onClick={handlePreviousPage}
+                disabled={page === 1}
+                className="px-3 py-1 border border-gray-300 rounded disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Previous
+              </button>
 
-            <span>
-              Page 1 of 1
-            </span>
+              <span className="whitespace-nowrap">
+                Page {page} of {totalPages}
+              </span>
 
-            <button
-              disabled
-              className="px-3 py-1 border rounded disabled:opacity-40"
-            >
-              Next
-            </button>
+              <button
+                type="button"
+                onClick={handleNextPage}
+                disabled={page === totalPages}
+                className="px-3 py-1 border border-gray-300 rounded disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Next
+              </button>
 
-          </div>
+            </div>
+          )}
 
         </div>
 
