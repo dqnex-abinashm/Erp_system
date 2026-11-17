@@ -296,7 +296,7 @@ const ProductionPage = () => {
       case 'status':
         return (
           <td key={key} className="px-4 py-2.5">
-            <span className={`px-2 py-0.5 rounded-full text-[12px] font-medium whitespace-nowrap ${item.status === 'Released' ? 'bg-[#dcfce7] text-[#16a34a]' : 'bg-[#ffedd5] text-[#c2410c]'}`}>
+            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap ${item.status === 'Released' ? 'bg-[#dcfce7] text-[#16a34a]' : 'bg-[#ffedd5] text-[#c2410c]'}`}>
               {item.status}
             </span>
           </td>
@@ -313,6 +313,10 @@ const ProductionPage = () => {
       default: return null;
     }
   };
+
+  const fill =
+    activeTab === 'Manufacturing Order' &&
+    (loadingOrders || !!ordersError || mfgOrdersData.length >= rowsPerPage);
 
   const totalPages = Math.ceil(totalOrders / rowsPerPage);
 
@@ -332,7 +336,7 @@ const ProductionPage = () => {
           type="checkbox"
           checked={allSelected}
           onChange={toggleSelectAll}
-          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer"
         />
       </div>
     </th>
@@ -346,14 +350,14 @@ const ProductionPage = () => {
           type="checkbox"
           checked={selectedIds.includes(id)}
           onChange={() => toggleSelect(id)}
-          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer"
         />
       </div>
     </td>
   );
 
   return (
-    <main className="flex-1 overflow-y-auto bg-[#f4f7f9] flex flex-col relative p-1.5 gap-1.5">
+    <main className="flex-1 min-h-0 overflow-hidden bg-[#f4f7f9] flex flex-col relative p-1.5 gap-1.5">
 
       {/* Sub Navigation */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm shrink-0 px-8">
@@ -362,11 +366,10 @@ const ProductionPage = () => {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex items-center gap-1 px-4 py-2 text-[13px] border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === tab
-                  ? 'border-black text-black font-bold'
-                  : 'border-transparent text-gray-500 font-medium hover:text-gray-700 hover:border-gray-300'
-              }`}
+              className={`flex items-center gap-1 px-4 py-2 text-[13px] border-b-2 transition-colors whitespace-nowrap ${activeTab === tab
+                ? 'border-black text-black font-bold'
+                : 'border-transparent text-gray-500 font-medium hover:text-gray-700 hover:border-gray-300'
+                }`}
             >
               {tab}
             </button>
@@ -393,9 +396,8 @@ const ProductionPage = () => {
                     key={f.value}
                     type="button"
                     onClick={() => pickFilter(f.value)}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-[13px] text-[#1a233a] ${
-                      activeFilter === f.value ? 'bg-gradient-to-r from-[#fdf0ee] to-[#eeecfd]' : 'hover:bg-gray-50'
-                    }`}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-[13px] text-[#1a233a] ${activeFilter === f.value ? 'bg-gradient-to-r from-[#fdf0ee] to-[#eeecfd]' : 'hover:bg-gray-50'
+                      }`}
                   >
                     {f.label}
                   </button>
@@ -423,16 +425,16 @@ const ProductionPage = () => {
       </div>
 
       {/* Table Area */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+      <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col ${fill ? 'flex-1 min-h-0' : ''}`}>
 
         {activeTab === 'Manufacturing Order' && (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className={`w-full overflow-x-auto ${fill ? 'flex-1 min-h-0 overflow-y-auto' : ''}`}>
+            <table className={`w-full ${fill ? 'h-full' : ''}`}>
               <thead>
                 <tr className="border-b border-gray-200 bg-[#f8f9fa]">
                   {headerCell}
                   {visibleColumns.map((c) => (
-                    <th key={c.key} className="px-4 py-3 text-left text-[13px] font-bold text-[#6b778c] whitespace-nowrap">
+                    <th key={c.key} className="px-4 py-3 text-left text-sm font-bold text-[#6b778c] whitespace-nowrap">
                       {labelOf(activeTab, c.key)}
                     </th>
                   ))}
@@ -456,9 +458,8 @@ const ProductionPage = () => {
                       <tr
                         key={item.id}
                         onClick={() => navigate(`/production/manufacturing/${item.id}`)}
-                        className={`border-b border-gray-100 transition-colors cursor-pointer ${
-                          selectedIds.includes(item.id) ? 'bg-blue-50' : idx % 2 === 0 ? 'bg-white' : 'bg-[#fcfcfc]'
-                        }`}
+                        className={`border-b border-gray-100 transition-colors cursor-pointer ${selectedIds.includes(item.id) ? 'bg-blue-50' : idx % 2 === 0 ? 'bg-white' : 'bg-[#fcfcfc]'
+                          }`}
                       >
                         {rowCheckbox(item.id)}
                         {visibleColumns.map((c) => renderMoCell(c.key, item))}
@@ -496,9 +497,8 @@ const ProductionPage = () => {
                     <tr
                       key={item.id}
                       onClick={() => navigate(`/production/job-card/${item.id}`)}
-                      className={`border-b border-gray-100 transition-colors cursor-pointer ${
-                        selectedIds.includes(item.id) ? 'bg-blue-50' : idx % 2 === 0 ? 'bg-white' : 'bg-[#fcfcfc]'
-                      }`}
+                      className={`border-b border-gray-100 transition-colors cursor-pointer ${selectedIds.includes(item.id) ? 'bg-blue-50' : idx % 2 === 0 ? 'bg-white' : 'bg-[#fcfcfc]'
+                        }`}
                     >
                       {rowCheckbox(item.id)}
                       {visibleColumns.map((c) => renderJobCell(c.key, item))}
@@ -512,39 +512,41 @@ const ProductionPage = () => {
 
         {/* Footer: Manufacturing Order */}
         {activeTab === 'Manufacturing Order' && !loadingOrders && !ordersError && totalOrders > 0 && (
-          <div className="flex items-center justify-between px-6 py-2.5 border-t border-gray-200 bg-white shrink-0">
-            <div className="text-[13px] text-gray-500">
+          <div className="flex items-center justify-between gap-4 px-6 py-3 border-t border-gray-200 bg-white text-xs text-gray-500 shrink-0">
+            <span>
               Showing {mfgOrdersData.length} of {totalOrders} manufacturing order(s)
-            </div>
+            </span>
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1 text-[13px] border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              <span className="text-[13px] text-gray-600 whitespace-nowrap">Page {currentPage} of {totalPages}</span>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage >= totalPages}
-                className="px-3 py-1 text-[13px] border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <span className="whitespace-nowrap">Page {currentPage} of {totalPages}</span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage >= totalPages}
+                  className="px-3 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
         )}
 
         {/* Footer: Job Cards */}
         {activeTab === 'Job Cards' && jobRows.length > 0 && (
-          <div className="flex items-center justify-between px-6 py-2.5 border-t border-gray-200 bg-white shrink-0">
-            <div className="text-[13px] text-gray-500">
+          <div className="flex items-center justify-between gap-4 px-6 py-3 border-t border-gray-200 bg-white text-xs text-gray-500 shrink-0">
+            <span>
               Showing {jobRows.length} of {jobRows.length} job card(s)
-            </div>
+            </span>
           </div>
         )}
       </div>

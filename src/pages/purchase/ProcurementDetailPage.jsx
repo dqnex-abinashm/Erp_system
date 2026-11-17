@@ -229,7 +229,7 @@ const ProcurementDetailPage = () => {
                   {/* Customer Profile Box */}
                   <div className="bg-white border border-gray-100 rounded-xl shadow-sm flex flex-col">
                     <div className="px-4 pt-4 pb-2 mx-1 border-b border-gray-200">
-                      <h3 className="text-[15px] font-bold text-gray-900 px-1">Vendor Profile</h3>
+                      <h3 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">Vendor Profile</h3>
                     </div>
                     <div className="px-5 pt-4 pb-5 flex-1">
                       <div className="flex items-center mb-6">
@@ -257,7 +257,7 @@ const ProcurementDetailPage = () => {
                   {/* Details Box */}
                   <div className="bg-white border border-gray-100 rounded-xl shadow-sm flex flex-col">
                     <div className="px-4 pt-4 pb-2 mx-1 border-b border-gray-200">
-                      <h3 className="text-[15px] font-bold text-gray-900 px-1">Details</h3>
+                      <h3 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">Details</h3>
                     </div>
                     <div className="px-5 pt-4 pb-5 flex-1">
                       <div className="space-y-4">
@@ -308,7 +308,7 @@ const ProcurementDetailPage = () => {
                 {/* Calculation Section */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 mt-2 flex flex-col">
                   <div className="px-4 pt-4 pb-2 mx-1 border-b border-gray-200">
-                    <h3 className="text-[15px] font-bold text-gray-900 px-1">Calculation</h3>
+                    <h3 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">Calculation</h3>
                   </div>
                   
                   <div className="p-5 overflow-x-auto">
@@ -371,7 +371,7 @@ const ProcurementDetailPage = () => {
                 {/* Notes and Terms Box */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col lg:flex-row mt-2 p-5 mb-2">
                   <div className="flex-1 pr-5">
-                    <h5 className="text-[14px] font-bold text-gray-900 mb-3">Customer Note</h5>
+                    <h5 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">Customer Note</h5>
                     <p className="text-[12px] text-gray-600 leading-relaxed max-w-sm">
                       Customer Requested Timely Delivery With Secure Packaging And Prior Dispatch Confirmation.
                     </p>
@@ -381,7 +381,7 @@ const ProcurementDetailPage = () => {
                   <div className="w-auto mx-5 lg:mx-0 lg:w-[2px] h-[1px] lg:h-auto bg-pink-200/60 lg:my-0 rounded-full"></div>
 
                   <div className="flex-1 pl-5">
-                    <h5 className="text-[14px] font-bold text-gray-900 mb-3">Term & Condition</h5>
+                    <h5 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">Term & Condition</h5>
                     <p className="text-[12px] text-gray-600 leading-relaxed">
                       Prices Are Exclusive Of Taxes. Payment Is Due Within 30 Days. Delivery Dates Are Estimated And Subject To Availability. Orders Cannot Be Cancelled After Production Begins. Goods Remain The Seller's Property Until Full Payment Is Received. All Disputes Are Subject To Local Jurisdiction.
                     </p>

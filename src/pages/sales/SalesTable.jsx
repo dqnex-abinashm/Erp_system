@@ -168,6 +168,11 @@ const SalesTable = ({ statusFilter = '' }) => {
 
   const handleReset = () => setDraft(DEFAULT_COLUMNS);
 
+  const fill = loading || salesOrders.length === 0 || paginatedOrders.length >= limit;
+
+  const cardClass = `bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col ${fill ? 'flex-1 min-h-0' : ''}`;
+
+
   const cell = 'py-2 px-3 text-[#1a233a] font-medium';
 
   const renderCell = (key, order) => {
@@ -210,7 +215,7 @@ const SalesTable = ({ statusFilter = '' }) => {
         return <td key={key} className={cell}>{order.payment}</td>;
       case 'packed':
         return (
-          <td key={key} className="py-2 px-3 text-gray-900 font-bold text-center text-lg">
+          <td key={key} className="py-2 px-3 text-gray-900 font-bold text-center">
             {order.packed ?? '-'}
           </td>
         );
@@ -221,24 +226,28 @@ const SalesTable = ({ statusFilter = '' }) => {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center p-8 text-center text-gray-500 font-medium">
-        Loading sales orders...
+      <div className={cardClass}>
+        <div className="flex-1 flex items-center justify-center p-8 text-center text-gray-500 font-medium">
+          Loading sales orders...
+        </div>
       </div>
     );
   }
 
   if (salesOrders.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center p-8 text-center text-gray-500 font-medium">
-        No sales orders found.
+      <div className={cardClass}>
+        <div className="flex-1 flex items-center justify-center p-8 text-center text-gray-500 font-medium">
+          No sales orders found.
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col">
-      <div className="overflow-x-auto w-full">
-        <table className="sales-table w-full text-left border-collapse whitespace-nowrap">
+    <div className={cardClass}>
+      <div className={`w-full overflow-x-auto ${fill ? 'flex-1 min-h-0 overflow-y-auto' : ''}`}>
+        <table className={`sales-table w-full text-left border-collapse whitespace-nowrap ${fill ? 'h-full' : ''}`}>
           <thead className="sticky top-0 z-10">
             <tr className="bg-[#f4f6f8] border-b border-gray-200 text-sm">
               <th className="py-3 pl-4 pr-3 font-bold text-[#6b778c] w-24">
@@ -277,9 +286,8 @@ const SalesTable = ({ statusFilter = '' }) => {
               paginatedOrders.map((order) => (
                 <tr
                   key={order.id}
-                  className={`sales-row border-b border-gray-100 hover:bg-gray-50/50 transition-colors text-[13px] ${
-                    selectedIds.includes(order.id) ? 'bg-blue-50/50' : ''
-                  }`}
+                  className={`sales-row border-b border-gray-100 hover:bg-gray-50/50 transition-colors text-[13px] ${selectedIds.includes(order.id) ? 'bg-blue-50/50' : ''
+                    }`}
                 >
                   <td className="py-2 pl-4 pr-3">
                     <div className="flex items-center gap-3">
@@ -315,7 +323,7 @@ const SalesTable = ({ statusFilter = '' }) => {
           Showing {paginatedOrders.length} of {totalRecords} order(s)
         </span>
 
-  
+
         {totalPages > 1 && (
           <div className="flex items-center gap-2">
             <button

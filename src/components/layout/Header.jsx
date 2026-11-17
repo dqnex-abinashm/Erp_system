@@ -86,7 +86,7 @@ const Header = ({ searchQuery, setSearchQuery }) => {
               {formatDate(currentTime)}
             </div>
             <div style={{ fontSize: '11px', color: '#6b7280', lineHeight: 1.1, marginTop: '2px' }}>
-              {formatTime(currentTime)} IST
+              {formatTime(currentTime)}
             </div>
           </div>
         </div>

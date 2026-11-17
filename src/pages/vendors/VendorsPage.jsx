@@ -172,6 +172,8 @@ const VendorsPage = () => {
 
   const handleReset = () => setDraft(DEFAULT_COLUMNS);
 
+  const fill = loading || vendors.length >= limit;
+
   const cell = 'px-4 py-2 text-[13px] text-[#1a233a] font-medium';
 
   const renderCell = (key, vendor) => {
@@ -248,11 +250,10 @@ const VendorsPage = () => {
                       setStatusFilter(statusFilter === f.value ? '' : f.value);
                       setMenuOpen(false);
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-[13px] text-[#1a233a] ${
-                      statusFilter === f.value
-                        ? 'bg-gradient-to-r from-[#fdf0ee] to-[#eeecfd]'
-                        : 'hover:bg-gray-50'
-                    }`}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-[13px] text-[#1a233a] ${statusFilter === f.value
+                      ? 'bg-gradient-to-r from-[#fdf0ee] to-[#eeecfd]'
+                      : 'hover:bg-gray-50'
+                      }`}
                   >
                     {f.label}
                   </button>
@@ -278,12 +279,11 @@ const VendorsPage = () => {
 
       {/* Table Area */}
       <div
-        className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col ${
-          vendors.length === limit ? 'flex-1 min-h-0' : 'shrink-0'
-        }`}
+        className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col ${fill ? 'flex-1 min-h-0' : 'shrink-0'
+          }`}
       >
-        <div className="overflow-x-auto overflow-y-hidden w-full flex-1 min-h-0">
-          <table className="w-full text-left border-collapse whitespace-nowrap table-auto">
+        <div className={`w-full overflow-x-auto ${fill ? 'flex-1 min-h-0 overflow-y-auto' : ''}`}>
+          <table className={`w-full text-left border-collapse whitespace-nowrap table-auto ${fill ? 'h-full' : ''}`}>
             <thead>
               <tr className="h-12 bg-[#f8f9fa] border-b border-gray-200">
                 <th className="px-4 py-2 w-24">
@@ -301,12 +301,12 @@ const VendorsPage = () => {
                       type="checkbox"
                       checked={allSelected}
                       onChange={toggleSelectAll}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer"
                     />
                   </div>
                 </th>
                 {visibleColumns.map((col) => (
-                  <th key={col.key} className="px-4 py-2 text-[13px] font-bold text-[#6b778c]">
+                  <th key={col.key} className="px-4 py-2 text-sm font-bold text-[#6b778c]">
                     {labelOf(col.key)}
                   </th>
                 ))}
@@ -329,13 +329,12 @@ const VendorsPage = () => {
                 vendors.map((vendor, idx) => (
                   <tr
                     key={getId(vendor)}
-                    className={`h-[48px] border-b border-gray-100 transition-colors ${
-                      selectedIds.includes(getId(vendor))
-                        ? 'bg-blue-50/50'
-                        : idx % 2 === 0
-                          ? 'bg-white'
-                          : 'bg-[#fcfcfc]'
-                    } hover:bg-gray-50`}
+                    className={`h-[48px] border-b border-gray-100 transition-colors ${selectedIds.includes(getId(vendor))
+                      ? 'bg-blue-50/50'
+                      : idx % 2 === 0
+                        ? 'bg-white'
+                        : 'bg-[#fcfcfc]'
+                      } hover:bg-gray-50`}
                   >
                     <td className="px-4 py-2.5">
                       <div className="flex items-center gap-3">
@@ -344,7 +343,7 @@ const VendorsPage = () => {
                           type="checkbox"
                           checked={selectedIds.includes(getId(vendor))}
                           onChange={() => toggleSelect(getId(vendor))}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer"
                         />
                       </div>
                     </td>
@@ -357,29 +356,31 @@ const VendorsPage = () => {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between gap-4 px-6 py-2 border-t border-gray-200 bg-white text-sm shrink-0">
-          <div className="text-sm text-[#64748b]">
+        <div className="flex items-center justify-between gap-4 px-6 py-3 border-t border-gray-200 bg-white text-xs text-gray-500 shrink-0">
+          <span>
             Showing {vendors.length} of {pagination.totalRecords || 0} vendor(s)
-          </div>
+          </span>
 
           {pagination.totalPages > 1 && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handlePreviousPage}
                 disabled={page === 1}
-                className="px-4 py-1.5 border border-gray-200 rounded-md text-sm text-[#64748b] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
-              <span className="text-sm text-[#334155] whitespace-nowrap">
+
+              <span className="whitespace-nowrap">
                 Page {page} of {pagination.totalPages}
               </span>
+
               <button
                 type="button"
                 onClick={handleNextPage}
                 disabled={page >= pagination.totalPages}
-                className="px-4 py-1.5 border border-gray-300 rounded-md text-sm text-[#334155] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Next
               </button>

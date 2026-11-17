@@ -2553,7 +2553,7 @@ const MachineDetailsPage = () => {
 
                   <div className="flex justify-between items-center mb-6">
 
-                    <h2 className="text-[16px] font-bold text-[#111827]">
+                    <h2 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">
                       Machine Utilization Analytics
                     </h2>
 
@@ -3080,7 +3080,7 @@ const MachineDetailsPage = () => {
 
                   <div className="p-5 border-b border-gray-100">
 
-                    <h2 className="text-[16px] font-bold text-[#111827] mb-1">
+                    <h2 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">
                       Production Report
                     </h2>
 
@@ -3922,7 +3922,7 @@ const MachineDetailsPage = () => {
           {activeTab === 'Document' && (
             <div className="space-y-6 max-w-7xl mx-auto">
               <div className="bg-white rounded-[12px] p-6 mb-6">
-                <h2 className="text-[16px] font-bold text-[#111827] mb-4">Machine Document</h2>
+                <h2 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">Machine Document</h2>
 
                 <div className="bg-white rounded-[12px] shadow-sm border border-gray-100 overflow-hidden">
                   <table className="w-full text-left">

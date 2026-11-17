@@ -284,28 +284,28 @@ const CustomerDetailsPage = () => {
                     data
                 );
 
-            setCustomer(
-                data.customer || data
-            );
+                setCustomer(
+                    data.customer || data
+                );
 
-            setSummary(
-                data.summary || {}
-            );
+                setSummary(
+                    data.summary || {}
+                );
 
-            setAddresses(
-                data.addresses || {
-                    billing: null,
-                    shipping: null
-                }
-            );
+                setAddresses(
+                    data.addresses || {
+                        billing: null,
+                        shipping: null
+                    }
+                );
 
-            setContacts(
-                data.contacts || []
-            );
+                setContacts(
+                    data.contacts || []
+                );
 
-            setBankDetails(
-                data.banks || []
-            );
+                setBankDetails(
+                    data.banks || []
+                );
 
             } catch (err) {
 
@@ -387,8 +387,8 @@ const CustomerDetailsPage = () => {
                     try {
                         const result = await getCustomerBoxSpecifications(customerId);
                         // Filter out completely empty objects from API
-                        const data = (result.data || []).filter(item => 
-                            Object.keys(item).length > 0 && 
+                        const data = (result.data || []).filter(item =>
+                            Object.keys(item).length > 0 &&
                             (item.boxSpec || item.boxType || item.paperType || item.id)
                         );
                         setBoxSpecifications(data);
@@ -468,11 +468,11 @@ const CustomerDetailsPage = () => {
                     );
 
                 // Filter out completely empty objects from API
-                const data = (result.data || []).filter(item => 
-                    Object.keys(item).length > 0 && 
+                const data = (result.data || []).filter(item =>
+                    Object.keys(item).length > 0 &&
                     (item.orderNumber || item.salesOrderId || item.id)
                 );
-                
+
                 setOrderHistory(data);
                 setOrderPagination(result.pagination || null);
 
@@ -788,175 +788,172 @@ const CustomerDetailsPage = () => {
                     )}
 
                 </div>
-             </div>    
+            </div>
 
-                {/* =================================================
+            {/* =================================================
                 RIGHT AREA
                 ================================================= */}
 
-                <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden bg-transparent">
+            <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden bg-transparent">
 
 
-                    {/* HEADER */}
+                {/* HEADER */}
 
-                    <CustomerHeader
-                        customer={customer}
-                    />
-
-
-                    {/* SUMMARY */}
-
-                    <CustomerSummary
-                        summary={summary}
-                        currencyCode={
-                            customer?.currencyCode ||
-                            'INR'
-                        }
-                    />
+                <CustomerHeader
+                    customer={customer}
+                />
 
 
-                    {/* =================================================
+                {/* SUMMARY */}
+
+                <CustomerSummary
+                    summary={summary}
+                    currencyCode={
+                        customer?.currencyCode ||
+                        'INR'
+                    }
+                />
+
+
+                {/* =================================================
                     MAIN CONTENT
                 ================================================= */}
 
-                    <div className="bg-white flex-1 flex flex-col overflow-hidden border border-gray-100 rounded-[20px] shadow-sm">
+                <div className="bg-white flex-1 flex flex-col overflow-hidden border border-gray-100 rounded-[20px] shadow-sm">
 
 
-                        {/* =============================================
+                    {/* =============================================
                         TABS
                     ============================================= */}
 
-                        <div className="flex gap-6 px-3 lg:px-4 pt-3 shrink-0 border-b border-gray-100">
+                    <div className="flex gap-6 px-3 lg:px-4 pt-3 shrink-0 border-b border-gray-100">
 
-                            {[
-                                'Overview',
-                                'Commercial Terms',
-                                'Box Specifications',
-                                'Order History'
-                            ].map(tab => (
+                        {[
+                            'Overview',
+                            'Commercial Terms',
+                            'Box Specifications',
+                            'Order History'
+                        ].map(tab => (
 
-                                <button
-                                    key={tab}
-                                    type="button"
-                                    onClick={() =>
-                                        setActiveTab(tab)
-                                    }
-                                    className={`relative pb-3 text-[13px] transition-colors ${activeTab === tab
-                                        ? 'font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff3b30] via-[#b82db8] to-[#5a67d8]'
-                                        : 'font-semibold text-gray-500 hover:text-gray-700'
-                                        }`}
-                                >
+                            <button
+                                key={tab}
+                                type="button"
+                                onClick={() =>
+                                    setActiveTab(tab)
+                                }
+                                className={`relative pb-3 text-[13px] transition-colors ${activeTab === tab
+                                    ? 'font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff3b30] via-[#b82db8] to-[#5a67d8]'
+                                    : 'font-semibold text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
 
-                                    {tab}
-
-
-                                    {activeTab === tab && (
-
-                                        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#ff3b30] via-[#b82db8] to-[#5a67d8]"></div>
-
-                                    )}
-
-                                </button>
-
-                            ))}
-
-                        </div>
+                                {tab}
 
 
-                        {/* =============================================
+                                {activeTab === tab && (
+
+                                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#ff3b30] via-[#b82db8] to-[#5a67d8]"></div>
+
+                                )}
+
+                            </button>
+
+                        ))}
+
+                    </div>
+
+
+                    {/* =============================================
                         TAB CONTENT
                     ============================================= */}
 
-                        <div className="flex-1 overflow-y-auto p-3 lg:p-4 bg-[#f8fafc] rounded-b-[20px]">
+                    <div className="flex-1 overflow-y-auto p-3 lg:p-4 bg-[#f8fafc] rounded-b-[20px]">
 
 
-                            {/* =========================================
+                        {/* =========================================
                             OVERVIEW
                         ========================================= */}
 
-                            {activeTab === 'Overview' && (
+                        {activeTab === 'Overview' && (
 
-                              <CustomerOverview
+                            <CustomerOverview
                                 customer={customer}
 
                                 billingAddress={
-                                addresses.billing
+                                    addresses.billing
                                 }
 
                                 shippingAddress={
-                                addresses.shipping
-                    }
+                                    addresses.shipping
+                                }
 
                                 contacts={contacts}
 
                                 bankDetails={bankDetails}
 
                                 onEdit={() =>
-                                    console.log(
-                                        'Edit customer:',
-                                        customerId
-                                    )
+                                    navigate(`/customers/${customerId}/edit`)
                                 }
                             />
-                            )}
+                        )}
 
 
-                            {/* =========================================
+                        {/* =========================================
                             COMMERCIAL TERMS
                             ========================================= */}
 
-                            {activeTab === 'Commercial Terms' && (
+                        {activeTab === 'Commercial Terms' && (
 
-                                loadingTab && !commercialTerms ? (
+                            loadingTab && !commercialTerms ? (
 
-                                    <LoadingTab />
+                                <LoadingTab />
 
-                                ) : (
+                            ) : (
 
-                                    <CustomerCommercialTerms
-                                        commercialTerms={commercialTerms}
-                                    />
+                                <CustomerCommercialTerms
+                                    commercialTerms={commercialTerms}
+                                />
 
-                                )
+                            )
 
-                            )}
+                        )}
 
-                            {/* =========================================
+                        {/* =========================================
                             BOX SPECIFICATIONS
                         ========================================= */}
 
-                            {activeTab === 'Box Specifications' && (
-                                loadingTab && boxSpecifications.length === 0
-                                    ? <LoadingTab />
-                                    : <BoxSpecifications
-                                        specifications={boxSpecifications}
-                                    />
-                            )}
+                        {activeTab === 'Box Specifications' && (
+                            loadingTab && boxSpecifications.length === 0
+                                ? <LoadingTab />
+                                : <BoxSpecifications
+                                    specifications={boxSpecifications}
+                                />
+                        )}
 
 
-                            {/* =========================================
+                        {/* =========================================
                             ORDER HISTORY
                         ========================================= */}
 
-                            {activeTab === 'Order History' && (
-                                loadingTab && orderHistory.length === 0
-                                    ? <LoadingTab />
-                                    : <OrderHistory
-                                        orders={orderHistory}
-                                        pagination={orderPagination}
-                                        onPageChange={handleOrderPageChange}
-                                        onSearch={handleOrderSearch}
-                                    />
-                            )}
-
-                        </div>
+                        {activeTab === 'Order History' && (
+                            loadingTab && orderHistory.length === 0
+                                ? <LoadingTab />
+                                : <OrderHistory
+                                    orders={orderHistory}
+                                    pagination={orderPagination}
+                                    onPageChange={handleOrderPageChange}
+                                    onSearch={handleOrderSearch}
+                                />
+                        )}
 
                     </div>
 
                 </div>
 
             </div>
-            );
+
+        </div>
+    );
 };
 
 
@@ -968,51 +965,51 @@ const LoadingTab = () => {
 
     return (
 
-            <div className="bg-white rounded-[12px] border border-gray-100 p-10 text-center">
+        <div className="bg-white rounded-[12px] border border-gray-100 p-10 text-center">
 
-                <div className="text-[12px] text-gray-400">
-                    Loading...
-                </div>
-
+            <div className="text-[12px] text-gray-400">
+                Loading...
             </div>
-            );
+
+        </div>
+    );
 };
 
 
-            // =====================================================
-            // HELPERS
-            // =====================================================
+// =====================================================
+// HELPERS
+// =====================================================
 
-            function formatCurrency(value) {
+function formatCurrency(value) {
 
     return `₹${Number(
-                value || 0
-            ).toLocaleString('en-IN')}`;
+        value || 0
+    ).toLocaleString('en-IN')}`;
 }
 
 
-            function formatDate(value) {
+function formatDate(value) {
 
     if (!value) {
         return '-';
     }
 
-            const date =
-            new Date(value);
+    const date =
+        new Date(value);
 
-            if (Number.isNaN(date.getTime())) {
+    if (Number.isNaN(date.getTime())) {
         return value;
     }
 
-            return date.toLocaleDateString(
-            'en-GB',
-            {
-                day: '2-digit',
+    return date.toLocaleDateString(
+        'en-GB',
+        {
+            day: '2-digit',
             month: 'short',
             year: 'numeric'
         }
-            );
+    );
 }
 
 
-            export default CustomerDetailsPage;
+export default CustomerDetailsPage;

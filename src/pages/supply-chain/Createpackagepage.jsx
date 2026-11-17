@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Settings, PlusCircle, Trash2, ChevronDown, X } from 'lucide-react';
 import {
@@ -10,13 +10,15 @@ import {
   SelectField,
   IconInput,
   NoteSection,
-  customerOptions,
-  salesOrderOptions,
+  CreationStepper,
   packageTypeOptions,
   initialPackageItems,
 } from './Supplychain';
 
-// input + unit select inside one bordered box (Net Weight / Gross Weight)
+import { createPackage, toISODate } from '../../services/createPackageApi';
+import { getCustomerLookup, getSalesOrderLookup, getPackableItems } from '../../services/packageLookupApi';
+
+// input + unit label inside one bordered box (Total Weight / Total Quantity)
 const UnitInput = ({ value, onChange, unit = 'Kg' }) => (
   <div className="flex items-center border border-gray-200 rounded-lg bg-white overflow-hidden focus-within:border-[#8b5cf6]">
     <input
@@ -32,42 +34,176 @@ const UnitInput = ({ value, onChange, unit = 'Kg' }) => (
   </div>
 );
 
+// ---------- date field: type a date OR click the calendar icon to pick one ----------
+// value is kept as DD/MM/YYYY (same as before); the hidden native date input gives the full calendar popup
+const toISO = v => {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v || '');
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : '';
+};
+const fromISO = v => {
+  if (!v) return '';
+  const [y, m, d] = v.split('-');
+  return `${d}/${m}/${y}`;
+};
+
+const DateInput = ({ value, onChange, placeholder = 'DD/MM/YYYY' }) => {
+  const pickerRef = useRef(null);
+
+  const openPicker = () => {
+    const el = pickerRef.current;
+    if (!el) return;
+    if (typeof el.showPicker === 'function') el.showPicker();
+    else el.focus();
+  };
+
+  return (
+    <div className="relative">
+      <input
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={`${INPUT} pr-10`}
+      />
+      <button
+        type="button"
+        onClick={openPicker}
+        title="Pick a date"
+        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-[#7c3aed]"
+      >
+        <Calendar className="w-4 h-4" />
+      </button>
+      <input
+        ref={pickerRef}
+        type="date"
+        value={toISO(value)}
+        onChange={e => onChange(fromISO(e.target.value))}
+        tabIndex={-1}
+        aria-hidden="true"
+        className="absolute right-2 bottom-0 w-0 h-0 opacity-0 pointer-events-none"
+      />
+    </div>
+  );
+};
+
+// converts one API item into a row of the Item Table
+const toItemRow = i => ({
+  id: i.salesOrderItemId,
+  salesOrderItemId: i.salesOrderItemId,
+  salesOrder: i.salesOrderNumber,
+  itemCode: i.itemCode,
+  name: i.itemName,
+  description: i.itemDescription,
+  orderDate: fromISO(i.itemOrderDate),
+  ordered: i.orderedQuantity,
+  remaining: i.remainingQuantity,
+  quantityToPack: i.remainingQuantity,
+  unitWeight: i.unitWeight,
+  totalWeight: +(i.remainingQuantity * i.unitWeight).toFixed(4),
+});
+
+// Item Table column headings (in order). Checkbox column comes first and Action column last.
+const ITEM_HEADERS = [
+  "Sale's Order",
+  'Item And Description',
+  'Order Date',
+  'Order Quantity',
+  'Packed Quantity',
+  'Total Weight',
+  'Action',
+];
+
 const CreatePackagePage = () => {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    customer: 'Ms. Priya Das',
-    salesOrders: ['SO-00001'],
-    slipNo: 'Pack-Slip-001',
-    date: '17/10/2026',
+    customerId: '',
+    salesOrders: [], // [{ salesOrderId, salesOrderNumber }]
+    slipNo: '',
+    date: '',
     packageType: '',
     length: '',
     width: '',
     height: '',
     dimUnit: 'cm',
-    netWeight: '',
-    // NOTE: design shows a 2nd "Package Type" label here (probably "Gross Weight").
-    // Kept as in the design for now - change the label below when confirmed.
-    grossWeight: '',
+    totalWeight: '',
+    totalQuantity: '',
     note: '',
   });
   const [items, setItems] = useState(initialPackageItems);
   const [selectedItems, setSelectedItems] = useState([]);
   const [soOpen, setSoOpen] = useState(false);
 
+  // data coming from the API
+  const [customers, setCustomers] = useState([]);
+  const [soOptions, setSoOptions] = useState([]);
+
   const update = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
 
-  const availableSalesOrders = salesOrderOptions.filter(so => !form.salesOrders.includes(so));
+  // load customers once
+  useEffect(() => {
+    getCustomerLookup()
+      .then(setCustomers)
+      .catch(err => alert(err.message));
+  }, []);
+
+  // load the items of the selected sales orders into the Item Table
+  const loadItems = async (customerId, salesOrders) => {
+    if (salesOrders.length === 0) {
+      setItems([]);
+      setSelectedItems([]);
+      return;
+    }
+    try {
+      const data = await getPackableItems(customerId, salesOrders.map(s => s.salesOrderId));
+      setItems(data.map(toItemRow));
+      setSelectedItems([]);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleCustomerChange = async customerId => {
+    setForm(prev => ({ ...prev, customerId, salesOrders: [] }));
+    setItems([]);
+    setSelectedItems([]);
+    setSoOptions([]);
+    if (!customerId) return;
+    try {
+      setSoOptions(await getSalesOrderLookup(customerId));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const availableSalesOrders = soOptions.filter(
+    so => !form.salesOrders.some(s => s.salesOrderId === so.salesOrderId)
+  );
 
   const addSalesOrder = so => {
-    update('salesOrders', [...form.salesOrders, so]);
+    const next = [...form.salesOrders, so];
+    update('salesOrders', next);
     setSoOpen(false);
+    loadItems(form.customerId, next);
   };
-  const removeSalesOrder = so =>
-    update('salesOrders', form.salesOrders.filter(s => s !== so));
+  const removeSalesOrder = salesOrderId => {
+    const next = form.salesOrders.filter(s => s.salesOrderId !== salesOrderId);
+    update('salesOrders', next);
+    loadItems(form.customerId, next);
+  };
 
+  // packed quantity can never be more than what is left on the sales order
   const updateItemQty = (id, qty) =>
-    setItems(prev => prev.map(i => (i.id === id ? { ...i, quantityToPack: qty } : i)));
+    setItems(prev =>
+      prev.map(i => {
+        if (i.id !== id) return i;
+        const q = qty === '' ? '' : Math.min(Math.max(Number(qty), 0), i.remaining);
+        return {
+          ...i,
+          quantityToPack: q,
+          totalWeight: q === '' ? '' : +(q * i.unitWeight).toFixed(4),
+        };
+      })
+    );
   const removeItem = id => setItems(prev => prev.filter(i => i.id !== id));
   const toggleItem = id =>
     setSelectedItems(prev => (prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]));
@@ -82,16 +218,48 @@ const CreatePackagePage = () => {
 
   const goBack = () => navigate('/supply-chain', { state: { tab: 'Packages' } });
 
-  const handleSave = () => {
-    console.log('Save package', { ...form, items });
-    goBack();
-  };
-  const handleSaveDraft = () => console.log('Save draft package', { ...form, items });
+  const buildPayload = status => ({
+    status,
+    customerId: form.customerId,
+    packageSlipNumber: form.slipNo,
+    packageDate: toISODate(form.date),
+    packageType: form.packageType,
+    dimensionLength: form.length,
+    dimensionWidth: form.width,
+    dimensionHeight: form.height,
+    dimensionUnit: form.dimUnit,
+    totalWeight: form.totalWeight,
+    weightUnit: 'Kg',
+    totalQuantity: form.totalQuantity,
+    quantityUnit: 'Pieces',
+    remarks: form.note,
+    items: items.map(i => ({
+      salesOrderItemId: i.salesOrderItemId,
+      itemCode: i.itemCode,
+      itemName: i.name,
+      itemDescription: i.description,
+      itemOrderDate: toISODate(i.orderDate),
+      totalQuantity: i.ordered,
+      packQuantity: i.quantityToPack,
+      packWeight: i.totalWeight,
+    })),
+  });
 
+  const submit = async status => {
+    try {
+      await createPackage(buildPayload(status));
+      if (status === 'PACKED') goBack();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleSave = () => submit('PACKED');
+  const handleSaveDraft = () => submit('DRAFT');
   return (
     <PageLayout
       activeTab="Packages"
-      steps={['Package Creation', 'Package Listed']}
+      stepper={<CreationStepper title="Package Creation" current="Package" />}
       footer={<PageFooter onSaveDraft={handleSaveDraft} onCancel={goBack} onSave={handleSave} />}
     >
       {/* only this middle area scrolls vertically */}
@@ -99,15 +267,25 @@ const CreatePackagePage = () => {
         <h2 className="text-xl font-bold text-[#1a233a]">New Package</h2>
 
         {/* ---------- Customer & Sales Order ---------- */}
+        {/* ---------- Customer & Sales Order ---------- */}
         <FormSection title="Customer & Sales Order">
           <div className="grid grid-cols-2 gap-6">
             <Field label="Customer Name" required>
-              <SelectField
-                value={form.customer}
-                onChange={v => update('customer', v)}
-                options={customerOptions}
-                placeholder="Select Customer"
-              />
+              <div className="relative">
+                <select
+                  value={form.customerId}
+                  onChange={e => handleCustomerChange(e.target.value)}
+                  className={`${INPUT} appearance-none pr-9 cursor-pointer ${form.customerId ? '' : 'text-gray-400'}`}
+                >
+                  <option value="">Select Customer</option>
+                  {customers.map(c => (
+                    <option key={c.customerId} value={c.customerId}>
+                      {c.customerName}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-gray-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </Field>
 
             <Field label="Sales Order" required>
@@ -118,12 +296,12 @@ const CreatePackagePage = () => {
                 >
                   {form.salesOrders.map(so => (
                     <span
-                      key={so}
+                      key={so.salesOrderId}
                       className="bg-gray-100 text-[12px] px-2 py-0.5 rounded flex items-center gap-1"
                       onClick={e => e.stopPropagation()}
                     >
-                      {so}
-                      <button type="button" onClick={() => removeSalesOrder(so)}>
+                      {so.salesOrderNumber}
+                      <button type="button" onClick={() => removeSalesOrder(so.salesOrderId)}>
                         <X className="w-3 h-3 text-gray-500" />
                       </button>
                     </span>
@@ -134,18 +312,20 @@ const CreatePackagePage = () => {
                 {soOpen && (
                   <>
                     <div className="fixed inset-0 z-20" onClick={() => setSoOpen(false)} />
-                    <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-gray-200 rounded-lg shadow-lg p-1">
-                      {availableSalesOrders.length === 0 ? (
-                        <div className="px-3 py-2 text-[12px] text-gray-500">No more sales orders</div>
+                    <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-gray-200 rounded-lg shadow-lg p-1 max-h-60 overflow-y-auto">
+                      {!form.customerId ? (
+                        <div className="px-3 py-2 text-[12px] text-gray-500">Select a customer first</div>
+                      ) : availableSalesOrders.length === 0 ? (
+                        <div className="px-3 py-2 text-[12px] text-gray-500">No sales orders left to pack</div>
                       ) : (
                         availableSalesOrders.map(so => (
                           <button
-                            key={so}
+                            key={so.salesOrderId}
                             type="button"
                             onClick={() => addSalesOrder(so)}
                             className="w-full text-left px-3 py-1.5 text-[13px] hover:bg-gray-50 rounded"
                           >
-                            {so}
+                            {so.salesOrderNumber}
                           </button>
                         ))
                       )}
@@ -176,12 +356,7 @@ const CreatePackagePage = () => {
             </Field>
 
             <Field label="Date" required>
-              <IconInput
-                icon={Calendar}
-                value={form.date}
-                onChange={e => update('date', e.target.value)}
-                placeholder="DD/MM/YYYY"
-              />
+              <DateInput value={form.date} onChange={v => update('date', v)} />
             </Field>
 
             <Field label="Package Type" required>
@@ -222,12 +397,12 @@ const CreatePackagePage = () => {
               </div>
             </Field>
 
-            <Field label="Net Weight" required>
-              <UnitInput value={form.netWeight} onChange={v => update('netWeight', v)} />
+            <Field label="Total Weight" required>
+              <UnitInput value={form.totalWeight} onChange={v => update('totalWeight', v)} unit="Kg" />
             </Field>
 
-            <Field label="Package Type" required>
-              <UnitInput value={form.grossWeight} onChange={v => update('grossWeight', v)} />
+            <Field label="Total Quantity" required>
+              <UnitInput value={form.totalQuantity} onChange={v => update('totalQuantity', v)} unit="Pieces" />
             </Field>
           </div>
         </FormSection>
@@ -263,10 +438,10 @@ const CreatePackagePage = () => {
                       className="rounded border-gray-300 cursor-pointer"
                     />
                   </th>
-                  {['Items & Description', 'Sales Order#', 'Ordered', 'Packed', 'Quantity To Pack', 'Stock On Hand', 'Unit', 'Action'].map((h, i) => (
+                  {ITEM_HEADERS.map((h, i) => (
                     <th
                       key={h}
-                      className={`px-4 py-3 text-[13px] font-bold text-[#6b778c] whitespace-nowrap ${i === 0 ? 'text-left' : 'text-center'}`}
+                      className={`px-4 py-3 text-[13px] font-bold text-[#6b778c] whitespace-nowrap ${i < 2 ? 'text-left' : 'text-center'}`}
                     >
                       {h}
                     </th>
@@ -276,7 +451,7 @@ const CreatePackagePage = () => {
               <tbody>
                 {items.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-6 text-center text-[13px] text-gray-500">
+                    <td colSpan={ITEM_HEADERS.length + 1} className="px-4 py-6 text-center text-[13px] text-gray-500">
                       No items.
                     </td>
                   </tr>
@@ -291,13 +466,24 @@ const CreatePackagePage = () => {
                           className="rounded border-gray-300 cursor-pointer"
                         />
                       </td>
+                      {/* Sale's Order */}
+                      <td className="px-4 py-3 text-[13px] text-left font-medium text-[#1a233a] whitespace-nowrap">
+                        {item.salesOrder}
+                      </td>
+                      {/* Item And Description */}
                       <td className="px-4 py-3">
                         <div className="text-[13px] font-semibold text-[#1a233a]">{item.name}</div>
                         <div className="text-[12px] text-gray-500">{item.description}</div>
                       </td>
-                      <td className="px-4 py-3 text-[13px] text-center font-medium text-[#1a233a]">{item.salesOrder}</td>
-                      <td className="px-4 py-3 text-[13px] text-center font-medium text-[#1a233a]">{item.ordered}</td>
-                      <td className="px-4 py-3 text-[13px] text-center font-medium text-[#1a233a]">{item.packed}</td>
+                      {/* Order Date */}
+                      <td className="px-4 py-3 text-[13px] text-center font-medium text-[#1a233a] whitespace-nowrap">
+                        {item.orderDate || '-'}
+                      </td>
+                      {/* Order Quantity */}
+                      <td className="px-4 py-3 text-[13px] text-center font-medium text-[#1a233a]">
+                        {item.ordered}
+                      </td>
+                      {/* Packed Quantity (editable) */}
                       <td className="px-4 py-3 text-center whitespace-nowrap">
                         <input
                           type="number"
@@ -307,10 +493,11 @@ const CreatePackagePage = () => {
                         />
                         <span className="text-[11px] text-gray-500 ml-1">Pcs</span>
                       </td>
+                      {/* Total Weight */}
                       <td className="px-4 py-3 text-[13px] text-center font-medium text-[#1a233a] whitespace-nowrap">
-                        {item.stockOnHand} <span className="text-[11px] text-gray-500">Pcs</span>
+                        {item.totalWeight || '-'}
                       </td>
-                      <td className="px-4 py-3 text-[13px] text-center font-medium text-[#1a233a]">{item.unit}</td>
+                      {/* Action */}
                       <td className="px-4 py-3 text-center">
                         <button
                           type="button"

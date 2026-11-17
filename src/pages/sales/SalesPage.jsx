@@ -26,7 +26,7 @@ const SalesPage = () => {
   ];
 
   return (
-    <main className="flex-1 overflow-y-auto bg-[#f4f7f9] flex flex-col relative p-1.5 gap-1.5">
+    <main className="flex-1 min-h-0 overflow-hidden bg-[#f4f7f9] flex flex-col relative p-1.5 gap-1.5">
 
       {/* Sub Navigation */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm shrink-0 px-8">
@@ -75,8 +75,8 @@ const SalesPage = () => {
                       setMenuOpen(false);
                     }}
                     className={`w-full text-left px-3 py-2 rounded-lg text-[13px] text-[#1a233a] ${statusFilter === s
-                        ? 'bg-gradient-to-r from-[#fdf0ee] to-[#eeecfd]'
-                        : 'hover:bg-gray-50'
+                      ? 'bg-gradient-to-r from-[#fdf0ee] to-[#eeecfd]'
+                      : 'hover:bg-gray-50'
                       }`}
                   >
                     {s}
@@ -93,10 +93,9 @@ const SalesPage = () => {
         </div>
       </div>
 
-      {/* Table Area */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 overflow-hidden flex flex-col">
-        <SalesTable statusFilter={statusFilter} />
-      </div>
+      
+      {/* Table Area (the white card is now inside SalesTable) */}
+      <SalesTable statusFilter={statusFilter} />
 
     </main>
   );

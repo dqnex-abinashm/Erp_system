@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Package,
@@ -21,6 +21,8 @@ import {
   HandCoins,
 } from 'lucide-react';
 
+import { getPackages } from '../../services/packageListApi';
+import { getShipments } from '../../services/shipmentListApi';
 // ======================================================
 // SHARED COMPONENTS (also imported by the other 4 supply chain pages)
 // ======================================================
@@ -212,6 +214,56 @@ export const WorkflowStepper = ({ current }) => {
   );
 };
 
+export const CreationStepper = ({ title, current }) => {
+  const currentIndex = Math.max(
+    0,
+    WORKFLOW_STEPS.findIndex(s => s.name.toLowerCase() === String(current).toLowerCase())
+  );
+
+  return (
+    <div className="bg-white px-6 py-2 rounded-xl border border-gray-200 shadow-sm shrink-0">
+      <h2 className="text-[20px] font-bold tracking-tight bg-gradient-to-r from-[#ff6b6b] via-[#9333ea] to-[#4338ca] bg-clip-text text-transparent inline-block mb-1">
+        {title}
+      </h2>
+
+      <div className="flex items-center w-full relative px-6 z-0">
+        {/* grey base line */}
+        <div className="absolute top-4 left-10 right-10 h-[2px] bg-gray-200 z-[-1]"></div>
+        {/* gradient line up to the current step */}
+        <div
+          className="absolute top-4 left-10 h-[2px] bg-gradient-to-r from-[#ff6b6b] via-[#9333ea] to-[#4338ca] z-[-1]"
+          style={{ width: `calc((100% - 5rem) * ${currentIndex} / ${WORKFLOW_STEPS.length - 1})` }}
+        ></div>
+
+        <div className="flex items-center justify-between w-full">
+          {WORKFLOW_STEPS.map((step, index) => {
+            const Icon = step.icon;
+            const isActive = index === currentIndex;
+            const isDone = index < currentIndex;
+            return (
+              <div key={step.name} className="flex flex-col items-center px-2 relative">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 relative z-10 ${isActive
+                      ? 'bg-gradient-to-br from-[#ff6b6b] via-[#9333ea] to-[#4338ca] text-white shadow-md'
+                      : isDone
+                        ? 'bg-white border-2 border-[#9333ea] text-[#9333ea]'
+                        : 'bg-white border-2 border-gray-200 text-gray-400'
+                    }`}
+                >
+                  <Icon className="w-3.5 h-3.5" strokeWidth={isActive ? 2.5 : 2} />
+                </div>
+                <span className={`text-[10px] font-semibold ${isActive ? 'text-gray-900' : 'text-gray-500'}`}>
+                  {step.name}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ======================================================
 // PAGE LAYOUT  (tabs + stepper + body + optional fixed footer)
 // The body (children) decides what scrolls.
@@ -390,260 +442,41 @@ export const ManageColumnPopup = ({ columns, defaultColumns, onSave, onCancel })
 };
 
 // ======================================================
-// DUMMY DATA (replace with API later)
+// DATA (comes from the API - empty until it is connected)
 // ======================================================
-export const packagesData = [
-  {
-    id: 'PKG-001',
-    packageDate: '15/10/2026',
-    packageNo: 'Pack-Slip-001',
-    carrier: 'Delivery',
-    tracking: 'DLV783624195',
-    salesOrder: 'SO-00001',
-    deliveryChallan: 'DC-00003',
-    status: 'In Transit',
-    shipmentDate: '17/10/2026',
-    customerName: 'Ms. Priya Das',
-    quantity: '100.00',
-  },
-  {
-    id: 'PKG-002',
-    packageDate: '16/10/2026',
-    packageNo: 'Pack-Slip-002',
-    carrier: 'Blue Dart',
-    tracking: 'BD458921763',
-    salesOrder: 'SO-00002',
-    deliveryChallan: 'DC-00002',
-    status: 'Shipped',
-    shipmentDate: '16/10/2026',
-    customerName: 'Mr. Rahul Sharma',
-    quantity: '250.00',
-  },
-];
+export const packagesData = [];
 
-export const shipmentsData = [
-  {
-    id: 'SHP-00001',
-    shipmentDate: '19/10/2026',
-    shipmentOrder: 'SHP-00001',
-    packageNo: 'Pack-Slip-001',
-    salesOrder: 'SO-00001',
-    carrier: 'Delivery',
-    tracking: 'DLV783624195',
-    deliveryChallan: 'DC-00001',
-    trackingStatus: 'In Transit',
-    customerName: 'Ms. Priya Das',
-    quantity: '100 Pcs',
-    shippingCost: '₹450.00',
-  },
-  {
-    id: 'SHP-00002',
-    shipmentDate: '22/10/2026',
-    shipmentOrder: 'SHP-00002',
-    packageNo: 'Pack-Slip-002',
-    salesOrder: 'SO-00002',
-    carrier: 'Blue Dart',
-    tracking: 'BD458921763',
-    deliveryChallan: 'DC-00002',
-    trackingStatus: 'Shipped',
-    customerName: 'Mr. Rahul Sharma',
-    quantity: '250 Pcs',
-    shippingCost: '₹680.00',
-  },
-];
+export const shipmentsData = [];
 
+// status filters (fixed lists, not dummy records)
 export const packageStatusFilters = [
-  'Pending',
-  'In Progress',
+  'in Progress',
   'Packed',
-  'Ready For Dispatch',
-  'Dispatched',
-  'Damaged',
+  'Shipped',
+  'In Transit',
+  'Delivered',
   'Cancelled',
 ];
 
 export const shipmentStatusFilters = [
-  'Pending Dispatch',
-  'Ready For Pickup',
+  'Shipped',
   'In Transit',
   'Delivered',
-  'Delayed',
-  'Returned',
   'Cancelled',
 ];
 
 // ---------- dropdown options for create pages ----------
-export const customerOptions = ['Ms. Priya Das', 'Mr. Rahul Sharma'];
-export const salesOrderOptions = ['SO-00001', 'SO-00002', 'SO-00003'];
-export const carrierOptions = ['Delivery', 'Blue Dart'];
+export const customerOptions = [];
+export const salesOrderOptions = [];
+export const carrierOptions = [];
 export const packageTypeOptions = ['Box', 'Pallet', 'Bundle', 'Crate'];
 
-export const initialPackageItems = [
-  {
-    id: 1,
-    name: 'Universal 7 Ply Box',
-    description: '7 Ply Corrugated Box',
-    salesOrder: 'SO-00003',
-    ordered: 170,
-    packed: 0,
-    quantityToPack: 170,
-    stockOnHand: 0,
-    unit: 'Box',
-  },
-];
+export const initialPackageItems = [];
 
 // ---------- details pages ----------
-export const packageDetailsData = [
-  {
-    id: 'PKG-001',
-    number: '-001',
-    slip: 'Pack-Slip-001',
-    cardDate: '25/06/2026',
-    amount: '₹42,322.00',
-    customerName: 'Ms. Priya Das',
-    status: 'Shipped',
-    profile: {
-      company: 'Climamax Controls Pvt Ltd',
-      code: 'CLIC-00001',
-      gstin: '29BGBBB2222B2Z2',
-      contact: 'Sarah Jenkins',
-    },
-    packageDate: '15/10/2026',
-    totalQuantity: '500.00',
-    billing: {
-      name: 'Ms. Priya Das',
-      lines: [
-        'Mr. Jajati Behera',
-        'Trikuta Hills, Sector - 43',
-        'Noida, Uttar Pradesh',
-        'India 100043',
-        '+91-9987654321',
-      ],
-    },
-    salesOrders: [
-      {
-        item: 'Universal 5 Ply Box',
-        salesOrderNo: 'SO-00001',
-        orderDate: '15/10/2026',
-        customer: 'SO-00001',
-        quantity: '100 Pcs',
-        amount: '5,000',
-      },
-    ],
-  },
-  {
-    id: 'PKG-002',
-    number: '-002',
-    slip: 'Pack-Slip-002',
-    cardDate: '25/06/2026',
-    amount: '₹31,522.00',
-    customerName: 'Mr. Rahul Sharma',
-    status: 'In Transit',
-    profile: {
-      company: 'Sharma Industries',
-      code: 'CLIC-00002',
-      gstin: '27AABCU9603R1ZX',
-      contact: 'Rahul Sharma',
-    },
-    packageDate: '16/10/2026',
-    totalQuantity: '250.00',
-    billing: {
-      name: 'Mr. Rahul Sharma',
-      lines: [
-        'Mr. Rahul Sharma',
-        'MIDC Industrial Area, Plot 12',
-        'Pune, Maharashtra',
-        'India 411019',
-        '+91-9876543210',
-      ],
-    },
-    salesOrders: [
-      {
-        item: 'Universal 7 Ply Box',
-        salesOrderNo: 'SO-00002',
-        orderDate: '16/10/2026',
-        customer: 'SO-00002',
-        quantity: '250 Pcs',
-        amount: '12,500',
-      },
-    ],
-  },
-];
+export const packageDetailsData = [];
 
-export const shipmentDetailsData = [
-  {
-    id: 'SHP-00001',
-    number: '-001',
-    cardLabel: 'Trial 17/10/2026',
-    salesOrder: 'SO-00001',
-    amount: '₹42,322.00',
-    customerName: 'Ms. Priya Das',
-    status: 'Shipped',
-    profile: {
-      company: 'Climamax Controls Pvt Ltd',
-      code: 'CLIC-00001',
-      gstin: '29BGBBB2222B2Z2',
-      contact: 'Sarah Jenkins',
-    },
-    packageNumber: 'Pack-Slip-001',
-    packageDate: '15/07/2026',
-    totalQuantity: '500.00',
-    shipmentDate: '17/10/2026',
-    carrier: 'Delivery',
-    trackingStatus: 'Shipped',
-    shipmentRate: '₹450.00',
-    note: 'Hi,\nThank you for choosing us.',
-    company: {
-      name: 'Dqnex',
-      state: 'Karnataka',
-      country: 'India',
-      phone: '91-7606018054',
-      email: 'likuanurag56@gmail.com',
-    },
-    shipTo: {
-      name: 'Mr. Jajati Behera',
-      lines: ['Trikuta Hills, Sector - 43', 'Noida', '100043 Uttar Pradesh', 'India'],
-    },
-    orderDate: '12/10/2026',
-    items: [{ description: 'Universal 5 ply Box', qty: '100.00 pcs' }],
-  },
-  {
-    id: 'SHP-00002',
-    number: '-002',
-    cardLabel: 'Trial 19/10/2026',
-    salesOrder: 'SO-00002',
-    amount: '₹31,522.00',
-    customerName: 'Mr. Rahul Sharma',
-    status: 'In Transit',
-    profile: {
-      company: 'Sharma Industries',
-      code: 'CLIC-00002',
-      gstin: '27AABCU9603R1ZX',
-      contact: 'Rahul Sharma',
-    },
-    packageNumber: 'Pack-Slip-002',
-    packageDate: '16/10/2026',
-    totalQuantity: '250.00',
-    shipmentDate: '19/10/2026',
-    carrier: 'Blue Dart',
-    trackingStatus: 'In Transit',
-    shipmentRate: '₹680.00',
-    note: 'Hi,\nThank you for choosing us.',
-    company: {
-      name: 'Dqnex',
-      state: 'Karnataka',
-      country: 'India',
-      phone: '91-7606018054',
-      email: 'likuanurag56@gmail.com',
-    },
-    shipTo: {
-      name: 'Mr. Rahul Sharma',
-      lines: ['MIDC Industrial Area, Plot 12', 'Pune', '411019 Maharashtra', 'India'],
-    },
-    orderDate: '14/10/2026',
-    items: [{ description: 'Universal 7 Ply Box', qty: '250.00 pcs' }],
-  },
-];
+export const shipmentDetailsData = [];
 
 // ======================================================
 // SUPPLY CHAIN LIST PAGE (Packages + Shipment)
@@ -656,8 +489,6 @@ export const shipmentDetailsData = [
 const PACKAGE_COLUMNS = [
   { key: 'packageDate', label: 'Package Date', header: 'Package Date' },
   { key: 'packageNo', label: 'Package#', header: 'Package#' },
-  { key: 'carrier', label: 'Carrier', header: 'Carrier' },
-  { key: 'tracking', label: 'Tracking#', header: 'Tracking#' },
   { key: 'salesOrder', label: 'Sales Order#', header: 'Sales Order#' },
   { key: 'deliveryChallan', label: 'Delivery Challan', header: 'Delivery Challan' },
   { key: 'status', label: 'Status', header: 'Status' },
@@ -692,7 +523,7 @@ const renderCell = (key, row) => {
       </span>
     );
   }
-  if (key === 'status') return <StatusBadge status={row.status} />;
+  if (key === 'status') return <StatusBadge status={row.status} size="md" />;
   return row[key];
 };
 
@@ -717,6 +548,25 @@ const SupplyChainPage = () => {
   const [packageCols, setPackageCols] = useState(toColumnState(PACKAGE_COLUMNS));
   const [shipmentCols, setShipmentCols] = useState(toColumnState(SHIPMENT_COLUMNS));
 
+
+  // packages from the API
+  const [packages, setPackages] = useState([]);
+
+  useEffect(() => {
+    getPackages()
+      .then(setPackages)
+      .catch(err => console.error(err.message));
+  }, []);
+
+  // shipments from the API (Shipment tab)
+  const [shipmentRows, setShipmentRows] = useState([]);
+
+  useEffect(() => {
+    getShipments()
+      .then(setShipmentRows)
+      .catch(err => console.error(err.message));
+  }, []);
+
   const isPackages = activeTab === 'Packages';
 
   // everything that differs between the two tabs
@@ -727,8 +577,7 @@ const SupplyChainPage = () => {
   const activeFilter = isPackages ? packageFilter : shipmentFilter;
   const setActiveFilter = isPackages ? setPackageFilter : setShipmentFilter;
   const statusKey = isPackages ? 'status' : 'trackingStatus';
-  const allRows = isPackages ? packagesData : shipmentsData;
-
+  const allRows = isPackages ? packages : shipmentRows;
   const rows = activeFilter ? allRows.filter(r => r[statusKey] === activeFilter) : allRows;
   const visibleCols = cols
     .filter(c => c.visible)
@@ -739,6 +588,8 @@ const SupplyChainPage = () => {
   const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage));
   const safePage = Math.min(currentPage, totalPages);
   const pageRows = rows.slice((safePage - 1) * rowsPerPage, safePage * rowsPerPage);
+
+  const fill = pageRows.length >= rowsPerPage;
 
   const handleTabChange = tab => {
     setActiveTab(tab);
@@ -768,7 +619,7 @@ const SupplyChainPage = () => {
   };
 
   return (
-    <main className="flex-1 overflow-y-auto bg-[#f4f7f9] flex flex-col relative p-1.5 gap-1.5">
+    <main className="flex-1 min-h-0 overflow-hidden bg-[#f4f7f9] flex flex-col relative p-1.5 gap-1.5">
 
       {/* Sub Navigation */}
       <SubTabs active={activeTab} onChange={handleTabChange} />
@@ -816,7 +667,7 @@ const SupplyChainPage = () => {
       </div>
 
       {/* Table Area */}
-      <div className={`${CARD} relative flex flex-col`}>
+      <div className={`${CARD} relative flex flex-col ${fill ? 'flex-1 min-h-0' : ''}`}>
         {manageOpen && (
           <>
             <div className="fixed inset-0 z-20" onClick={() => setManageOpen(false)} />
@@ -834,8 +685,8 @@ const SupplyChainPage = () => {
         )}
 
         {/* horizontal scroll: scroll right to see all columns */}
-        <div className="overflow-x-auto rounded-t-xl">
-          <table className="w-full min-w-max">
+        <div className={`overflow-x-auto rounded-t-xl ${fill ? 'flex-1 min-h-0 overflow-y-auto' : ''}`}>
+          <table className={`w-full min-w-max ${fill ? 'h-full' : ''}`}>
             <thead>
               <tr className="border-b border-gray-200 bg-[#f8f9fa] sticky top-0 z-10">
                 <th className="w-10 px-3 py-3">
@@ -852,13 +703,13 @@ const SupplyChainPage = () => {
                     type="checkbox"
                     checked={allSelected}
                     onChange={toggleAll}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer"
                   />
                 </th>
                 {visibleCols.map(col => (
                   <th
                     key={col.key}
-                    className={`px-4 py-3 text-[13px] font-bold text-[#6b778c] whitespace-nowrap ${col.align === 'right' ? 'text-right' : 'text-left'
+                    className={`px-4 py-3 text-sm font-bold text-[#6b778c] whitespace-nowrap ${col.align === 'right' ? 'text-right' : 'text-left'
                       }`}
                   >
                     {col.header}
@@ -895,7 +746,7 @@ const SupplyChainPage = () => {
                         type="checkbox"
                         checked={selectedRows.includes(row.id)}
                         onChange={() => toggleRow(row.id)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer"
                       />
                     </td>
                     {visibleCols.map(col => (
@@ -915,36 +766,38 @@ const SupplyChainPage = () => {
           </table>
         </div>
 
-        {/* Pagination footer (same as Production page) */}
+        {/* Pagination footer */}
         {totalRows > 0 && (
-          <div className="flex items-center justify-between px-6 py-2.5 border-t border-gray-200 bg-white shrink-0 rounded-b-xl">
-            <div className="text-[13px] text-gray-500">
+          <div className="flex items-center justify-between gap-4 px-6 py-3 border-t border-gray-200 bg-white text-xs text-gray-500 shrink-0 rounded-b-xl">
+            <span>
               Showing {pageRows.length} of {totalRows} {isPackages ? 'package(s)' : 'shipment(s)'}
-            </div>
+            </span>
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setCurrentPage(Math.max(1, safePage - 1))}
-                disabled={safePage === 1}
-                className="px-3 py-1 text-[13px] border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(Math.max(1, safePage - 1))}
+                  disabled={safePage === 1}
+                  className="px-3 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
 
-              <span className="text-[13px] text-gray-600 whitespace-nowrap">
-                Page {safePage} of {totalPages}
-              </span>
+                <span className="whitespace-nowrap">
+                  Page {safePage} of {totalPages}
+                </span>
 
-              <button
-                type="button"
-                onClick={() => setCurrentPage(Math.min(totalPages, safePage + 1))}
-                disabled={safePage >= totalPages}
-                className="px-3 py-1 text-[13px] border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(Math.min(totalPages, safePage + 1))}
+                  disabled={safePage >= totalPages}
+                  className="px-3 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

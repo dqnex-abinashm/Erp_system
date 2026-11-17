@@ -22,6 +22,14 @@ import {
 import { getInventoryItemDetails } from '../../services/inventoryItemDetailsApi';
 import { getInventoryItems } from '../../services/inventoryItemListApi';
 
+const formatNumber = (value) => {
+  if (value === null || value === undefined || value === '') return '-';
+  const str = String(value).trim();
+  // Only format if it's a pure number; leave text like "Kraft" untouched
+  if (isNaN(Number(str))) return str;
+  return String(parseFloat(str));
+};
+
 const InventoryItemDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -157,14 +165,13 @@ const InventoryItemDetailPage = () => {
               {allItems.map((listItem) => {
                 const isActive = listItem.invItemId === id;
                 return (
-                  <div 
+                  <div
                     key={listItem.invItemId}
                     onClick={() => navigate(`/inventory/${listItem.invItemId}`)}
-                    className={`rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[70px] cursor-pointer transition-all ${
-                      isActive 
+                    className={`rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[70px] cursor-pointer transition-all ${isActive
                         ? 'bg-gradient-to-r from-[#ffede1] via-[#fae8f8] to-[#efdfff] border border-[#d54a88]/30'
                         : 'bg-white border border-gray-200 hover:border-[#402de8]/40 hover:bg-gradient-to-br hover:from-[#fff5f2] hover:via-[#fcf5fd] hover:to-[#f6f5fe] hover:shadow-md'
-                    }`}
+                      }`}
                   >
                     <div className="flex justify-between items-start gap-2">
                       <span className={`text-[13px] font-bold leading-tight line-clamp-2 ${isActive ? 'text-[#111827]' : 'text-gray-900'}`}>
@@ -223,7 +230,7 @@ const InventoryItemDetailPage = () => {
             {/* Main Details Containers */}
             <div className="flex-1 overflow-y-auto custom-scrollbar pb-2 pr-1 mt-1.5">
               <div className="flex flex-col gap-3 min-h-full">
-                
+
                 {/* Top Row */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                   {/* Left Column (col-span-2) */}
@@ -231,7 +238,7 @@ const InventoryItemDetailPage = () => {
                     {/* Primary Details */}
                     <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 h-full">
                       <h3 className="text-[17px] font-bold text-gray-900 mb-6">Primary Details</h3>
-                      
+
                       <div className="space-y-5 relative pl-4 before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[3px] before:bg-gradient-to-b before:from-[#ff9a9e] before:via-[#fecfef] before:to-[#a1c4fd] before:rounded-full">
                         <div className="flex">
                           <div className="w-1/2 text-[13px] font-medium text-gray-500">Item Name</div>
@@ -295,7 +302,7 @@ const InventoryItemDetailPage = () => {
 
                 {/* Specification & Purchase Information Row */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                  
+
                   {/* Category Specs Details */}
                   {spec && Object.keys(spec).length > 0 && (
                     <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
@@ -304,7 +311,7 @@ const InventoryItemDetailPage = () => {
                         {Object.entries(spec).filter(([k]) => !k.includes('Id')).map(([key, value]) => (
                           <div key={key} className="flex relative pl-4 before:absolute before:left-0 before:top-0.5 before:bottom-0.5 before:w-0.5 before:bg-blue-300 before:rounded-full">
                             <div className="w-1/2 text-[13px] font-medium text-gray-500 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</div>
-                            <div className="w-1/2 text-[13px] font-bold text-gray-900">{value || '-'}</div>
+                            <div className="w-1/2 text-[13px] font-bold text-gray-900">{formatNumber(value)}</div>
                           </div>
                         ))}
                       </div>
@@ -349,9 +356,9 @@ const InventoryItemDetailPage = () => {
                         Available Stock : <span className="bg-gradient-to-r from-[#ff7a59] to-[#6366f1] bg-clip-text text-transparent">{item.openingStock || '0.00'} {item.unit}</span>
                       </h3>
                     </div>
-                    
+
                     <h4 className="text-[15px] font-bold text-gray-900 mb-4">Stock Details</h4>
-                    
+
                     <div className="flex gap-4 flex-1">
                       <div className="flex-1 space-y-5 relative pr-5 before:absolute before:right-0 before:top-1 before:bottom-1 before:w-[3px] before:bg-gradient-to-b before:from-[#ff9a9e] before:via-[#eeb3e6] before:to-[#a1c4fd] before:rounded-full">
                         <div className="flex justify-between">
@@ -367,7 +374,7 @@ const InventoryItemDetailPage = () => {
                           <span className="text-[13px] font-bold text-gray-900">0.00</span>
                         </div>
                       </div>
-                      
+
                       <div className="w-28 space-y-3">
                         <div className="bg-white border border-gray-100 rounded-lg p-2.5 shadow-sm">
                           <span className="text-[10px] text-gray-400 block mb-0.5 leading-none">To be Recitable</span>

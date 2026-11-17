@@ -233,9 +233,10 @@ LOAD MACHINES FROM BACKEND
     currentPageIds.length > 0 &&
     currentPageIds.every((id) => selectedMachines.includes(id));
 
+  const fill = loading || !!error || paginatedMachines.length >= limit;
 
   return (
-    <main className="flex-1 overflow-y-auto bg-[#f4f7f9] flex flex-col relative p-1.5 gap-1.5">
+    <main className="flex-1 min-h-0 overflow-hidden bg-[#f4f7f9] flex flex-col relative p-1.5 gap-1.5">
 
       {/* =====================================================
           PAGE TOOLBAR
@@ -288,11 +289,11 @@ LOAD MACHINES FROM BACKEND
           TABLE AREA
           ===================================================== */}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 min-h-0 overflow-hidden flex flex-col">
+      <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col ${fill ? 'flex-1 min-h-0' : ''}`}>
 
-        <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto w-full">
+        <div className={`w-full overflow-x-auto ${fill ? 'flex-1 min-h-0 overflow-y-auto' : ''}`}>
 
-          <table className="w-full text-left border-collapse whitespace-nowrap">
+          <table className={`w-full text-left border-collapse whitespace-nowrap ${fill ? 'h-full' : ''}`}>
 
 
             {/* =================================================
@@ -316,31 +317,31 @@ LOAD MACHINES FROM BACKEND
 
 
                 {/* MACHINE CODE */}
-                <th className="py-2 px-3 font-bold text-[#6b778c]">
+                <th className="py-3 px-3 font-bold text-[#6b778c]">
                   Machine Code
                 </th>
 
 
                 {/* MACHINE NAME */}
-                <th className="py-2 px-3 font-bold text-[#6b778c]">
+                <th className="py-3 px-3 font-bold text-[#6b778c]">
                   Machine Name
                 </th>
 
 
                 {/* LOCATION */}
-                <th className="py-2 px-3 font-bold text-[#6b778c]">
+                <th className="py-3 px-3 font-bold text-[#6b778c]">
                   Location
                 </th>
 
 
                 {/* CAPACITY */}
-                <th className="py-2 px-3 font-bold text-[#6b778c]">
+                <th className="py-3 px-3 font-bold text-[#6b778c]">
                   Capacity
                 </th>
 
 
                 {/* OEE */}
-                <th className="py-2 px-3 font-bold text-[#6b778c]">
+                <th className="py-3 px-3 font-bold text-[#6b778c]">
                   OEE
                 </th>
 
@@ -352,7 +353,7 @@ LOAD MACHINES FROM BACKEND
 
 
                 {/* STATUS */}
-                <th className="py-2 pr-4 pl-3 font-bold text-[#6b778c]">
+                <th className="py-3 pr-4 pl-3 font-bold text-[#6b778c]">
                   Status
                 </th>
 
@@ -596,7 +597,7 @@ LOAD MACHINES FROM BACKEND
 
                     {/* STATUS */}
 
-                    <td className="py-3 pr-4 pl-3">
+                    <td className="py-2 pr-4 pl-3">
 
                       <StatusPill
                         status={machine.status}
@@ -620,7 +621,7 @@ LOAD MACHINES FROM BACKEND
             FOOTER
             ===================================================== */}
         {/* Pagination Footer */}
-        <div className="shrink-0 px-6 py-3 border-t border-gray-100 bg-white text-xs text-gray-500 flex justify-between items-center gap-3">
+        <div className="shrink-0 px-6 py-3 border-t border-gray-200 bg-white text-xs text-gray-500 flex justify-between items-center gap-3">
 
           <span>
             Showing {paginatedMachines.length} of {totalRecords} machine(s)

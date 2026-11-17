@@ -70,7 +70,7 @@ const PurchaseOrderDetailPage = () => {
         setLoadingList(false);
       }
     };
-    
+
     fetchPurchaseOrdersList();
   }, []);
 
@@ -95,10 +95,10 @@ const PurchaseOrderDetailPage = () => {
         console.log('Purchase Order Detail API Response:', result);
 
 
-       
-  // * ============================================================
-  // * NORMALIZE PURCHASE ORDER RESPONSE
-  // * ============================================================
+
+        // * ============================================================
+        // * NORMALIZE PURCHASE ORDER RESPONSE
+        // * ============================================================
 
         const rawData = result.data || {};
 
@@ -201,12 +201,12 @@ const PurchaseOrderDetailPage = () => {
 
     return date.toLocaleDateString('en-GB');
   };
-  
 
-  
+
+
   // FORMAT VENDOR ADDRESS
   // ============================================================
-  
+
 
   const formatVendorAddress = (address) => {
     if (!address || typeof address !== 'object') {
@@ -292,6 +292,32 @@ const PurchaseOrderDetailPage = () => {
         '-';
 
   // ============================================================
+  // VENDOR CODE (e.g. VEND-000013)
+  // ============================================================
+  const vendorCode =
+    vendor?.vendorCode ||
+    vendor?.vendor_code ||
+    vendor?.code ||
+    poHeader?.vendor_code ||
+    '-';
+
+  // ============================================================
+  // VENDOR EMAIL
+  // ============================================================
+  const vendorEmail =
+    vendor?.email ||
+    vendor?.emailAddress ||
+    vendor?.email_address ||
+    vendor?.primaryContactEmail ||
+    vendor?.primary_contact_email ||
+    poHeader?.vendor_email ||
+    poHeader?.email ||
+    '-';
+
+
+
+
+  // ============================================================
   // VENDOR BILLING ADDRESS
   // ============================================================
   // First use the vendor API address.
@@ -314,7 +340,21 @@ const PurchaseOrderDetailPage = () => {
     poHeader?.shipping_address ||
     null;
 
-
+  // ============================================================
+  // VENDOR PHONE
+  // ============================================================
+  const vendorPhone =
+    vendor?.phone ||
+    vendor?.workPhone ||
+    vendor?.work_phone ||
+    vendor?.mobile ||
+    vendor?.primaryContactPhone ||
+    vendor?.primary_contact_phone ||
+    billingAddress?.phone ||
+    shippingAddress?.phone ||
+    poHeader?.vendor_phone ||
+    poHeader?.phone ||
+    '-';
 
   // ============================================================
   // FORMAT ADDRESSES FOR DISPLAY
@@ -528,7 +568,7 @@ const PurchaseOrderDetailPage = () => {
               ) : (
                 purchaseOrdersList.map((po) => {
                   const isActive = po.purchase_order_id.toString() === id;
-                  
+
                   return (
                     <div
                       key={po.purchase_order_id}
@@ -605,7 +645,7 @@ const PurchaseOrderDetailPage = () => {
                   {/* Customer Profile Box */}
                   <div className="bg-white border border-gray-100 rounded-xl shadow-sm flex flex-col">
                     <div className="px-4 py-3 border-b border-gray-50">
-                      <h3 className="text-[14px] font-semibold bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent">
+                      <h3 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">
                         Vendor Profile
                       </h3>
                     </div>
@@ -620,7 +660,7 @@ const PurchaseOrderDetailPage = () => {
                           </h4>
 
                           <p className="text-[11px] text-gray-400 mt-0.5">
-                            {purchaseOrderNumber}
+                            {vendorCode}
                           </p>
                         </div>
                       </div>
@@ -631,7 +671,17 @@ const PurchaseOrderDetailPage = () => {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-[12px] font-medium text-gray-400">Point Of Contact</span>
-                          <span className="text-[12px] font-bold text-gray-900"> {vendorContact}</span>
+                          <span className="text-[12px] font-bold text-gray-900">{vendorContact}</span>
+                        </div>
+
+                        {/* NEW */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12px] font-medium text-gray-400">Email</span>
+                          <span className="text-[12px] font-bold text-gray-900 truncate ml-4">{vendorEmail}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12px] font-medium text-gray-400">Phone No</span>
+                          <span className="text-[12px] font-bold text-gray-900">{vendorPhone}</span>
                         </div>
                       </div>
                     </div>
@@ -640,7 +690,7 @@ const PurchaseOrderDetailPage = () => {
                   {/* Details Box */}
                   <div className="bg-white border border-gray-100 rounded-xl shadow-sm flex flex-col">
                     <div className="px-4 py-3 border-b border-gray-50">
-                      <h3 className="text-[14px] font-semibold bg-gradient-to-r from-[#ff5a4f] via-[#e94b9f] to-[#5b45ff] bg-clip-text text-transparent">Details</h3>
+                      <h3 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">Details</h3>
                     </div>
                     <div className="p-4 flex-1">
                       <div className="space-y-2 pt-1">
@@ -694,7 +744,7 @@ const PurchaseOrderDetailPage = () => {
                 <div className="bg-white rounded-xl shadow-sm border border-[#eef2f6] px-4 py-3">
 
                   {/* Calculation heading */}
-                  <h3 className="text-[18px] font-semibold text-[#ff4f5e] pb-3 border-b border-gray-200 mb-2">
+                  <h3 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">
                     Calculation
                   </h3>
 
@@ -923,7 +973,7 @@ const PurchaseOrderDetailPage = () => {
                   {/* Customer Note */}
                   <div className="flex-1 px-5 py-4">
                     {/* Heading is black, matching the reference image. */}
-                    <h5 className="text-[13px] font-semibold text-[#111827] mb-2">
+                    <h5 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">
                       Customer Note
                     </h5>
 
@@ -941,7 +991,7 @@ const PurchaseOrderDetailPage = () => {
                   {/* Term & Condition */}
                   <div className="flex-1 px-5 py-4">
                     {/* Heading is black, matching the reference image. */}
-                    <h5 className="text-[13px] font-semibold text-[#111827] mb-2">
+                    <h5 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">
                       Term & Condition
                     </h5>
 

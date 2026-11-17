@@ -207,9 +207,11 @@ const CustomerPage = () => {
   // UI
   // =====================================================
 
+  const fillPage = isLoading || customers.length >= limit;
+
   return (
 
-    <main className="flex-1 overflow-y-auto bg-[#f4f7f9] flex flex-col relative p-1.5 gap-1.5">
+    <main className="flex-1 min-h-0 overflow-hidden bg-[#f4f7f9] flex flex-col relative p-1.5 gap-1.5">
 
 
       {/* =================================================
@@ -295,7 +297,7 @@ const CustomerPage = () => {
           TABLE CONTAINER
       ================================================= */}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 overflow-hidden flex flex-col">
+      <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col ${fillPage ? 'flex-1 min-h-0' : ''}`}>
 
 
         {/* Loading */}
@@ -360,6 +362,7 @@ const CustomerPage = () => {
               }
 
               searchQuery={searchQuery}
+              fill={fillPage}
 
             />
 
@@ -370,7 +373,7 @@ const CustomerPage = () => {
             FOOTER
         ================================================= */}
 
-        <div className="px-6 py-4 border-t border-gray-100 bg-white text-xs text-gray-500 flex justify-between items-center mt-auto">
+        <div className="px-6 py-3 border-t border-gray-200 bg-white text-xs text-gray-500 flex justify-between items-center shrink-0 mt-auto">
 
 
           <span>
@@ -384,17 +387,6 @@ const CustomerPage = () => {
           </span>
 
 
-          {selectedIds.length > 0 && (
-
-            <span className="text-blue-600 font-medium">
-
-              {selectedIds.length} selected
-
-            </span>
-
-          )}
-
-
           {/* Pagination */}
 
           {pagination.totalPages > 1 && (
@@ -405,7 +397,7 @@ const CustomerPage = () => {
                 type="button"
                 onClick={handlePreviousPage}
                 disabled={page === 1}
-                className="px-3 py-1 border rounded disabled:opacity-40"
+                className="px-3 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
@@ -425,7 +417,7 @@ const CustomerPage = () => {
                 disabled={
                   page === pagination.totalPages
                 }
-                className="px-3 py-1 border rounded disabled:opacity-40"
+                className="px-3 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Next
               </button>

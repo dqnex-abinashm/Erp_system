@@ -41,6 +41,7 @@ const CustomerTable = ({
   onToggleSelectAll,
   onToggleSelect,
   searchQuery,
+  fill = false,
 }) => {
   const navigate = useNavigate();
   const btnRef = useRef(null);
@@ -95,37 +96,37 @@ const CustomerTable = ({
     switch (key) {
       case 'name':
         return (
-          <td key={key} className="py-4 px-4 text-blue-600 font-medium hover:underline whitespace-nowrap">
+          <td key={key} className="py-3 px-4 text-blue-600 font-medium hover:underline whitespace-nowrap">
             {c.displayName || '—'}
           </td>
         );
       case 'gst':
         return (
-          <td key={key} className="py-4 px-4 text-[#1a233a] font-medium whitespace-nowrap">
+          <td key={key} className="py-3 px-4 text-[#1a233a] font-medium whitespace-nowrap">
             {c.gstin || '—'}
           </td>
         );
       case 'contact':
         return (
-          <td key={key} className="py-4 px-4 text-[#1a233a] font-medium whitespace-nowrap">
+          <td key={key} className="py-3 px-4 text-[#1a233a] font-medium whitespace-nowrap">
             {c.primaryContact || '—'}
           </td>
         );
       case 'email':
         return (
-          <td key={key} className="py-4 px-4 text-[#1a233a] font-medium whitespace-nowrap">
+          <td key={key} className="py-3 px-4 text-[#1a233a] font-medium whitespace-nowrap">
             {c.email || '—'}
           </td>
         );
       case 'phone':
         return (
-          <td key={key} className="py-4 px-4 text-[#1a233a] font-medium whitespace-nowrap">
+          <td key={key} className="py-3 px-4 text-[#1a233a] font-medium whitespace-nowrap">
             {c.phone || '—'}
           </td>
         );
       case 'receivable':
         return (
-          <td key={key} className="py-4 px-4 text-[#1a233a] font-medium whitespace-nowrap">
+          <td key={key} className="py-3 px-4 text-[#1a233a] font-medium whitespace-nowrap">
             {Number(c.receivable || 0).toLocaleString('en-IN', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
@@ -134,11 +135,11 @@ const CustomerTable = ({
         );
       case 'status':
         return (
-          <td key={key} className="py-4 px-4 text-[#1a233a] font-medium whitespace-nowrap">
+          <td key={key} className="py-3 px-4 text-[#1a233a] font-medium whitespace-nowrap">
             {c.status === 'ACTIVE' ? (
-              <span className="bg-[#dcfce7] text-[#10b981] px-2 py-0.5 rounded-full font-medium text-[10px]">Active</span>
+              <span className="bg-[#dcfce7] text-[#10b981] px-2 py-0.5 rounded-full font-medium text-[11px]">Active</span>
             ) : (
-              <span className="bg-[#fee2e2] text-[#ef4444] px-2 py-0.5 rounded-full font-medium text-[10px]">Inactive</span>
+              <span className="bg-[#fee2e2] text-[#ef4444] px-2 py-0.5 rounded-full font-medium text-[11px]">Inactive</span>
             )}
           </td>
         );
@@ -148,9 +149,9 @@ const CustomerTable = ({
   };
 
   return (
-    <div className="flex-1 pb-8 w-full overflow-x-auto">
-      <div className="w-full">
-        <table className="w-full text-left border-collapse">
+    <div className={`w-full overflow-x-auto ${fill ? 'flex-1 min-h-0 overflow-y-auto' : ''}`}>
+      <div className={`w-full ${fill ? 'h-full' : ''}`}>
+        <table className={`w-full text-left border-collapse ${fill ? 'h-full' : ''}`}>
           <thead>
             <tr className="bg-[#f4f6f8] border-b border-gray-200 text-sm">
               <th className="py-3 pl-4 pr-4 font-bold text-[#6b778c] w-24">
@@ -174,7 +175,7 @@ const CustomerTable = ({
               </th>
 
               {visibleColumns.map((col) => (
-                <th key={col.key} className="py-4 px-4 font-bold text-[#6b778c] whitespace-nowrap">
+                <th key={col.key} className="py-3 px-4 font-bold text-[#6b778c] whitespace-nowrap">
                   {col.key === 'status' ? (
                     <div className="flex items-center gap-1 cursor-pointer">
                       Status <ChevronDown className="w-3.5 h-3.5" />
@@ -193,9 +194,8 @@ const CustomerTable = ({
                 <tr
                   key={customer.customerId}
                   onClick={() => navigate(`/customers/${customer.customerId}`)}
-                  className={`border-b border-gray-100 hover:bg-gray-50/50 transition-colors text-[13px] cursor-pointer ${
-                    selectedIds.includes(customer.customerId) ? 'bg-blue-50/50' : ''
-                  }`}
+                  className={`border-b border-gray-100 hover:bg-gray-50/50 transition-colors text-[13px] cursor-pointer ${selectedIds.includes(customer.customerId) ? 'bg-blue-50/50' : ''
+                    }`}
                 >
                   <td className="py-3 pl-4 pr-4" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-3">

@@ -28,3 +28,31 @@ export const createVendor = async (vendorData) => {
 
     return result;
 };
+
+export const updateVendor = async (vendorId, vendorData) => {
+
+    const response = await fetch(
+        `${API_BASE_URL}/vendors/${vendorId}`,
+        {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(vendorData)
+        }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        if (result.errors && Array.isArray(result.errors)) {
+            const errorMessages = result.errors.map(err => err.msg).join(', ');
+            throw new Error(`Validation failed: ${errorMessages}`);
+        }
+        throw new Error(
+            result.message || 'Failed to update vendor'
+        );
+    }
+
+    return result;
+};

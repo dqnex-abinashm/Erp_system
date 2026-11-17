@@ -16,7 +16,7 @@ const VendorDetailsPage = () => {
   const [addressExpanded, setAddressExpanded] = useState(true);
   const [activeTab, setActiveTab] = useState('Overview');
   const [selectedBox, setSelectedBox] = useState(null);
-  
+
   // State
   const [vendorList, setVendorList] = useState([]);
   const [vendor, setVendor] = useState(null);
@@ -127,14 +127,13 @@ const VendorDetailsPage = () => {
 
         <div className="flex-1 overflow-y-auto px-3 pb-3 hide-scrollbar">
           {vendorList.map(v => (
-            <div 
+            <div
               key={v.vendorId || v.id}
               onClick={() => navigate(`/vendors/${v.vendorId || v.id}`)}
-              className={`rounded-2xl px-3 py-2 cursor-pointer hover:shadow-md transition-all shadow-sm border mb-2.5 ${
-                String(v.vendorId || v.id) === String(vendorId) 
-                ? 'bg-gradient-to-br from-[#ffede1] via-[#fae8f8] to-[#efdfff] border-transparent'
-                : 'bg-white hover:bg-gradient-to-br hover:from-[#ffede1] hover:via-[#fae8f8] hover:to-[#efdfff] hover:border-transparent border-gray-100'
-              }`}
+              className={`rounded-2xl px-3 py-2 cursor-pointer hover:shadow-md transition-all shadow-sm border mb-2.5 ${String(v.vendorId || v.id) === String(vendorId)
+                  ? 'bg-gradient-to-br from-[#ffede1] via-[#fae8f8] to-[#efdfff] border-transparent'
+                  : 'bg-white hover:bg-gradient-to-br hover:from-[#ffede1] hover:via-[#fae8f8] hover:to-[#efdfff] hover:border-transparent border-gray-100'
+                }`}
             >
               <div className="flex justify-between items-center mb-0.5">
                 <span className="text-[12px] font-medium text-[#374151]">{v.vendorCode || v.vendor_code || 'VEND-0000'}</span>
@@ -209,8 +208,8 @@ const VendorDetailsPage = () => {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`relative pb-3 text-[13px] transition-colors ${activeTab === tab
-                    ? 'font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff3b30] via-[#b82db8] to-[#5a67d8]'
-                    : 'font-semibold text-gray-500 hover:text-gray-700'
+                  ? 'font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff3b30] via-[#b82db8] to-[#5a67d8]'
+                  : 'font-semibold text-gray-500 hover:text-gray-700'
                   }`}
               >
                 {tab}
@@ -229,146 +228,150 @@ const VendorDetailsPage = () => {
               <div className="space-y-6">
 
                 <div className="bg-white rounded-[12px] p-2.5 shadow-sm border border-gray-100">
-                <div className="space-y-4">
+                  <div className="space-y-4">
 
-                <div className="flex justify-end">
-                  <button className="p-1.5 border border-gray-100 rounded-md bg-white hover:bg-gray-50 text-gray-400 transition-colors shadow-sm">
-                    <Edit className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* ── Top Row: Profile & Payment ── */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-
-                  {/* Vendor Profile Card */}
-                  <div className="bg-white rounded-[12px] border border-gray-100 shadow-sm p-5 relative">
-                    <div className="border-b border-gray-100 pb-3 mb-4">
-                      <h3 className="text-[16px] font-medium text-[#1a233a]">Vendor Profile</h3>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => navigate(`/vendors/${vendorId}/edit`)}
+                        className="p-1.5 border border-gray-100 rounded-md bg-white hover:bg-gray-50 text-gray-400 transition-colors shadow-sm"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
                     </div>
 
-                    <div className="flex items-center gap-4 mb-5">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ff3b30] to-[#b82db8] flex items-center justify-center text-white text-[15px] font-bold shadow-sm shrink-0">
-                        {vendor.displayName ? vendor.displayName.substring(0, 2).toUpperCase() : 'V'}
+                    {/* ── Top Row: Profile & Payment ── */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+                      {/* Vendor Profile Card */}
+                      <div className="bg-white rounded-[12px] border border-gray-100 shadow-sm p-5 relative">
+                        <div className="border-b border-gray-100 pb-3 mb-4">
+                          <h3 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">Vendor Profile</h3>
+                        </div>
+
+                        <div className="flex items-center gap-4 mb-5">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ff3b30] to-[#b82db8] flex items-center justify-center text-white text-[15px] font-bold shadow-sm shrink-0">
+                            {vendor.displayName ? vendor.displayName.substring(0, 2).toUpperCase() : 'V'}
+                          </div>
+                          <div>
+                            <h4 className="text-[14px] font-bold text-[#1a233a] leading-tight">{vendor.companyName}</h4>
+                            <span className="text-[11px] text-gray-400 font-medium">{vendor.vendorCode}</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2.5">
+                          <div className="grid grid-cols-[120px_1fr] items-center text-[13px]">
+                            <span className="text-gray-400 font-medium">Vendor Type</span>
+                            <span className="font-bold text-[#1a233a]">{vendor.vendorType || '-'}</span>
+                          </div>
+                          <div className="grid grid-cols-[120px_1fr] items-center text-[13px]">
+                            <span className="text-gray-400 font-medium">PAN</span>
+                            <span className="font-bold text-[#1a233a]">{vendor.pan || '-'}</span>
+                          </div>
+                          <div className="grid grid-cols-[120px_1fr] items-center text-[13px]">
+                            <span className="text-gray-400 font-medium">GSTIN</span>
+                            <span className="font-bold text-[#1a233a]">{vendor.gstin || '-'}</span>
+                          </div>
+                          <div className="grid grid-cols-[120px_1fr] items-center text-[13px]">
+                            <span className="text-gray-400 font-medium">MSME Register</span>
+                            <span className="font-bold text-[#1a233a]">{vendor.msme || '-'}</span>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-[14px] font-bold text-[#1a233a] leading-tight">{vendor.companyName}</h4>
-                        <span className="text-[11px] text-gray-400 font-medium">{vendor.vendorCode}</span>
+
+                      {/* Payment Details Card */}
+                      <div className="bg-white rounded-[12px] border border-gray-100 shadow-sm p-5 relative">
+                        <div className="border-b border-gray-100 pb-3 mb-4">
+                          <h3 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">Payment Details</h3>
+                        </div>
+
+                        <div className="space-y-3 mt-[44px]">
+                          <div className="grid grid-cols-[140px_1fr] items-center text-[13px]">
+                            <span className="text-gray-400 font-medium">Currency</span>
+                            <span className="font-bold text-[#1a233a]">{vendor.currencyCode || 'INR - Indian Rupee'}</span>
+                          </div>
+                          <div className="grid grid-cols-[140px_1fr] items-center text-[13px]">
+                            <span className="text-gray-400 font-medium">Opening Balance</span>
+                            <span className="font-bold text-[#1a233a]">₹{vendor.openingBalance || '0.00'}</span>
+                          </div>
+                          <div className="grid grid-cols-[140px_1fr] items-center text-[13px]">
+                            <span className="text-gray-400 font-medium">Payment Terms</span>
+                            <span className="font-bold text-[#1a233a]">{vendor.paymentTerms || 'Net 30'}</span>
+                          </div>
+                        </div>
                       </div>
+
                     </div>
 
-                    <div className="space-y-2.5">
-                      <div className="grid grid-cols-[120px_1fr] items-center text-[13px]">
-                        <span className="text-gray-400 font-medium">Vendor Type</span>
-                        <span className="font-bold text-[#1a233a]">{vendor.vendorType || '-'}</span>
-                      </div>
-                      <div className="grid grid-cols-[120px_1fr] items-center text-[13px]">
-                        <span className="text-gray-400 font-medium">PAN</span>
-                        <span className="font-bold text-[#1a233a]">{vendor.pan || '-'}</span>
-                      </div>
-                      <div className="grid grid-cols-[120px_1fr] items-center text-[13px]">
-                        <span className="text-gray-400 font-medium">GSTIN</span>
-                        <span className="font-bold text-[#1a233a]">{vendor.gstin || '-'}</span>
-                      </div>
-                      <div className="grid grid-cols-[120px_1fr] items-center text-[13px]">
-                        <span className="text-gray-400 font-medium">MSME Register</span>
-                        <span className="font-bold text-[#1a233a]">{vendor.msme || '-'}</span>
+                    <div className="bg-white rounded-[12px] border border-blue-50 shadow-sm p-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 relative gap-0">
+                        <div className="pr-6 border-r-2 border-pink-300">
+                          <div className="flex justify-between items-center mb-2">
+                            <h3 className="text-[14px] font-bold text-gray-500">Billing Address</h3>
+                          </div>
+                          <div className="text-[12px] font-bold text-[#4b5563] leading-snug">
+                            {addresses?.billing?.attention && <>{addresses.billing.attention}<br /></>}
+                            {addresses?.billing?.street1 && <>{addresses.billing.street1}<br /></>}
+                            {addresses?.billing?.street2 && <>{addresses.billing.street2}<br /></>}
+                            {addresses?.billing?.city && <>{addresses.billing.city}, {addresses.billing.state} {addresses.billing.zipCode}</>}
+                            {!addresses?.billing && 'No billing address provided.'}
+                          </div>
+                        </div>
+
+                        <div className="pl-6">
+                          <div className="flex justify-between items-center mb-2">
+                            <h3 className="text-[14px] font-bold text-gray-500">Shipping Address</h3>
+                          </div>
+                          <div className="text-[12px] font-bold text-[#4b5563] leading-snug">
+                            {addresses?.shipping?.attention && <>{addresses.shipping.attention}<br /></>}
+                            {addresses?.shipping?.street1 && <>{addresses.shipping.street1}<br /></>}
+                            {addresses?.shipping?.street2 && <>{addresses.shipping.street2}<br /></>}
+                            {addresses?.shipping?.city && <>{addresses.shipping.city}, {addresses.shipping.state} {addresses.shipping.zipCode}</>}
+                            {!addresses?.shipping && 'No shipping address provided.'}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-
-                  {/* Payment Details Card */}
-                  <div className="bg-white rounded-[12px] border border-gray-100 shadow-sm p-5 relative">
-                    <div className="border-b border-gray-100 pb-3 mb-4">
-                      <h3 className="text-[16px] font-medium text-[#1a233a]">Payment Details</h3>
-                    </div>
-
-                    <div className="space-y-3 mt-[44px]">
-                      <div className="grid grid-cols-[140px_1fr] items-center text-[13px]">
-                        <span className="text-gray-400 font-medium">Currency</span>
-                        <span className="font-bold text-[#1a233a]">{vendor.currencyCode || 'INR - Indian Rupee'}</span>
-                      </div>
-                      <div className="grid grid-cols-[140px_1fr] items-center text-[13px]">
-                        <span className="text-gray-400 font-medium">Opening Balance</span>
-                        <span className="font-bold text-[#1a233a]">₹{vendor.openingBalance || '0.00'}</span>
-                      </div>
-                      <div className="grid grid-cols-[140px_1fr] items-center text-[13px]">
-                        <span className="text-gray-400 font-medium">Payment Terms</span>
-                        <span className="font-bold text-[#1a233a]">{vendor.paymentTermsId || 'Net 30'}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-
-                <div className="bg-white rounded-[12px] border border-blue-50 shadow-sm p-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 relative gap-0">
-                    <div className="pr-6 border-r-2 border-pink-300">
-                      <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-[14px] font-bold text-gray-500">Billing Address</h3>
-                      </div>
-                      <div className="text-[12px] font-bold text-[#4b5563] leading-snug">
-                        {addresses?.billing?.attention && <>{addresses.billing.attention}<br/></>}
-                        {addresses?.billing?.street1 && <>{addresses.billing.street1}<br/></>}
-                        {addresses?.billing?.street2 && <>{addresses.billing.street2}<br/></>}
-                        {addresses?.billing?.city && <>{addresses.billing.city}, {addresses.billing.state} {addresses.billing.zipCode}</>}
-                        {!addresses?.billing && 'No billing address provided.'}
-                      </div>
-                    </div>
-
-                    <div className="pl-6">
-                      <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-[14px] font-bold text-gray-500">Shipping Address</h3>
-                      </div>
-                      <div className="text-[12px] font-bold text-[#4b5563] leading-snug">
-                        {addresses?.shipping?.attention && <>{addresses.shipping.attention}<br/></>}
-                        {addresses?.shipping?.street1 && <>{addresses.shipping.street1}<br/></>}
-                        {addresses?.shipping?.street2 && <>{addresses.shipping.street2}<br/></>}
-                        {addresses?.shipping?.city && <>{addresses.shipping.city}, {addresses.shipping.state} {addresses.shipping.zipCode}</>}
-                        {!addresses?.shipping && 'No shipping address provided.'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                </div>
                 </div>
 
 
                 <div className="bg-white rounded-[12px] border border-blue-50 shadow-sm p-5">
                   <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-[16px] font-bold text-[#1a233a]">Contacts Directory</h3>
+                    <h3 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">Contacts Directory</h3>
                   </div>
                   <div className="flex flex-col divide-y divide-gray-100">
                     {contacts.length === 0 && <div className="text-gray-500 text-[13px] py-4">No contacts found.</div>}
                     {contacts.map((contact, idx) => {
                       const contactName = contact.name || (contact.firstName ? `${contact.firstName} ${contact.lastName || ''}`.trim() : null) || 'Unknown Contact';
                       return (
-                      <div key={idx} className="flex items-center justify-between py-2.5 hover:bg-gray-50/50 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[12px] font-bold text-gray-600">
-                            {contactName !== 'Unknown Contact' ? contactName.substring(0, 2).toUpperCase() : 'C'}
+                        <div key={idx} className="flex items-center justify-between py-2.5 hover:bg-gray-50/50 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[12px] font-bold text-gray-600">
+                              {contactName !== 'Unknown Contact' ? contactName.substring(0, 2).toUpperCase() : 'C'}
+                            </div>
+                            <div>
+                              <div className="text-[13px] font-bold text-[#1a233a]">{contactName}</div>
+                              <div className="text-[11px] text-gray-400 mt-0.5">{contact.designation || contact.department || '-'}</div>
+                            </div>
                           </div>
-                          <div>
-                            <div className="text-[13px] font-bold text-[#1a233a]">{contactName}</div>
-                            <div className="text-[11px] text-gray-400 mt-0.5">{contact.designation || contact.department || '-'}</div>
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1.5 text-gray-500 text-[10px] font-medium bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100 shadow-sm">
+                              {contact.mobileNumber || contact.phone || contact.mobile || '-'}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-gray-500 text-[10px] font-medium bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100 shadow-sm">
+                              <Mail className="w-3 h-3" />
+                              {contact.emailAddress || contact.email || '-'}
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-1.5 text-gray-500 text-[10px] font-medium bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100 shadow-sm">
-                            {contact.mobileNumber || contact.phone || contact.mobile || '-'}
-                          </div>
-                          <div className="flex items-center gap-1.5 text-gray-500 text-[10px] font-medium bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100 shadow-sm">
-                            <Mail className="w-3 h-3" />
-                            {contact.emailAddress || contact.email || '-'}
-                          </div>
-                        </div>
-                      </div>
-                    )})}
+                      )
+                    })}
                   </div>
                 </div>
 
                 <div className="bg-white rounded-[12px] border border-blue-50 shadow-sm p-5">
                   <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-[16px] font-bold text-[#1a233a]">Bank Details</h3>
+                    <h3 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">Bank Details</h3>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-[12px] text-left">
@@ -404,11 +407,11 @@ const VendorDetailsPage = () => {
             {activeTab === 'Commercial Terms' && (
               <div className="space-y-3">
                 <div className="bg-white border border-blue-50 rounded-[12px] p-5 shadow-sm">
-                  <h3 className="text-[16px] font-bold text-[#1a233a] mb-4">Payment Terms</h3>
+                  <h3 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">Payment Terms</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="bg-[#f7fbff] border border-blue-100 rounded-[8px] p-4 flex flex-col justify-center">
                       <div className="text-[12px] text-gray-800 font-medium mb-1">Payment Terms</div>
-                      <div className="text-[16px] font-medium text-black">{vendor?.paymentTermsId || commercialTerms?.paymentTerms || 'Net 30'}</div>
+                      <div className="text-[16px] font-medium text-black">{vendor?.paymentTerms || commercialTerms?.paymentTerms || 'Net 30'}</div>
                     </div>
                     <div className="bg-[#f7fbff] border border-blue-100 rounded-[8px] p-4 flex flex-col justify-center">
                       <div className="text-[12px] text-gray-800 font-medium mb-1">Currency</div>
@@ -426,7 +429,7 @@ const VendorDetailsPage = () => {
             {/* Tab Content - Box Specification */}
             {activeTab === 'Box Specification' && (
               <div className="space-y-6">
-                <h3 className="text-[16px] font-bold text-[#1a233a]">Material Supplied (3)</h3>
+                <h3 className="text-[15px] font-bold tracking-wide bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] bg-clip-text text-transparent inline-block">Material Supplied (3)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Card 1 */}
                   <div className="bg-white border border-gray-200 rounded-[12px] p-3 shadow-sm flex flex-col hover:border-[#ea580c] hover:shadow-md transition-all cursor-pointer">
@@ -435,12 +438,12 @@ const VendorDetailsPage = () => {
                       <span className="inline-flex px-2 py-0.5 bg-[#dcfce7] text-[#16a34a] text-[10px] font-medium rounded-full">Approved</span>
                     </div>
                     <div className="text-[11px] text-gray-400 mb-1.5">RM-PAP-1150</div>
-                    
+
                     <div className="text-[12px] text-[#1a233a] font-medium mb-2 leading-relaxed">
-                      GSM Range: 140-160<br/>
+                      GSM Range: 140-160<br />
                       Reel Width: 900-1250mm
                     </div>
-                    
+
                     <div className="mt-auto">
                       <div className="flex justify-between items-center mb-1.5">
                         <span className="text-[11px] text-gray-500 font-medium">Quality Score</span>
@@ -459,12 +462,12 @@ const VendorDetailsPage = () => {
                       <span className="inline-flex px-2 py-0.5 bg-[#dcfce7] text-[#16a34a] text-[10px] font-medium rounded-full">Approved</span>
                     </div>
                     <div className="text-[11px] text-gray-400 mb-1.5">RM-PAP-1120</div>
-                    
+
                     <div className="text-[12px] text-[#1a233a] font-medium mb-2 leading-relaxed">
-                      GSM Range: 100-140<br/>
+                      GSM Range: 100-140<br />
                       Reel Width: 900-1250mm
                     </div>
-                    
+
                     <div className="mt-auto">
                       <div className="flex justify-between items-center mb-1.5">
                         <span className="text-[11px] text-gray-500 font-medium">Quality Score</span>
@@ -479,16 +482,16 @@ const VendorDetailsPage = () => {
                   {/* Card 3 */}
                   <div className="bg-white border border-gray-200 rounded-[12px] p-3 shadow-sm flex flex-col hover:border-[#ea580c] hover:shadow-md transition-all cursor-pointer">
                     <div className="flex justify-between items-start mb-1">
-                      <h4 className="text-[14px] font-bold text-[#1a233a] pr-2">Test Linear 100 GSM<br/>(Recycled)</h4>
+                      <h4 className="text-[14px] font-bold text-[#1a233a] pr-2">Test Linear 100 GSM<br />(Recycled)</h4>
                       <span className="inline-flex px-2 py-0.5 bg-[#ffedd5] text-[#d97706] text-[10px] font-medium rounded-full whitespace-nowrap shrink-0">Under Evaluation</span>
                     </div>
                     <div className="text-[11px] text-gray-400 mb-1.5">RM-PAP-1120</div>
-                    
+
                     <div className="text-[12px] text-[#1a233a] font-medium mb-2 leading-relaxed">
-                      GSM Range: 100-140<br/>
+                      GSM Range: 100-140<br />
                       Reel Width: 900-1250mm
                     </div>
-                    
+
                     <div className="mt-auto">
                       <div className="flex justify-between items-center mb-1.5">
                         <span className="text-[11px] text-gray-500 font-medium">Quality Score</span>
@@ -631,7 +634,7 @@ const VendorDetailsPage = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             {/* Modal Content */}
             <div className="p-6 pt-5 flex gap-8">
               {/* Left Column */}
@@ -653,7 +656,7 @@ const VendorDetailsPage = () => {
                   <div className="text-[13px] text-[#1a233a] font-medium">{selectedBox.ect}</div>
                 </div>
               </div>
-              
+
               {/* Right Column */}
               <div className="flex-1 space-y-6 pl-2">
                 <div>

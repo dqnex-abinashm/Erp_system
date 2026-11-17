@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Mail, ChevronDown, Bookmark, Globe, Check, UploadCloud, Copy, Receipt, Package, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { createCustomer } from '../../services/createcustomerApi';
+import { useNavigate, useParams } from 'react-router-dom';
+import { createCustomer, updateCustomer } from '../../services/createcustomerApi';
+import { getCustomerDetails } from '../../services/customerDetailsApi';
 
 const CreateCustomerPage = () => {
   const navigate = useNavigate();
+  const { customerId } = useParams();
+  const isEditMode = Boolean(customerId);
   const [customerType, setCustomerType] = useState('Business');
   const [activeTab, setActiveTab] = useState('Other Details');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
-customer_type: 'Business',
+    customer_type: 'Business',
 
     primary_contact_salutation: '',
     primary_contact_first_name: '',
@@ -47,15 +50,15 @@ customer_type: 'Business',
     zip_code: '',
     phone: '',
     fax: ''
-};
+  };
 
-const [billingAddress, setBillingAddress] = useState({
+  const [billingAddress, setBillingAddress] = useState({
     ...emptyAddress
-});
+  });
 
-const [shippingAddress, setShippingAddress] = useState({
+  const [shippingAddress, setShippingAddress] = useState({
     ...emptyAddress
-});
+  });
 
   const [bankDetails, setBankDetails] = useState([{
     bank_name: '',
@@ -71,6 +74,80 @@ const [shippingAddress, setShippingAddress] = useState({
     designation: '',
   }]);
 
+  useEffect(() => {
+    if (!isEditMode) return;
+
+    const s = (v) => (v === null || v === undefined ? '' : String(v));
+
+    const toAddress = (a) => ({
+      attention: s(a?.attention),
+      country_region: s(a?.country) || 'India',
+      street_1: s(a?.street1),
+      street_2: s(a?.street2),
+      city: s(a?.city),
+      district: s(a?.district),
+      state: s(a?.state),
+      zip_code: s(a?.zipCode),
+      phone: s(a?.phone),
+      fax: s(a?.fax)
+    });
+
+    const loadCustomer = async () => {
+      try {
+        const result = await getCustomerDetails(customerId);
+        const d = result.data || {};
+        const c = d.customer || {};
+
+        setFormData({
+          customer_type: c.customerType || 'Business',
+          primary_contact_salutation: s(c.primaryContactPrefix),
+          primary_contact_first_name: s(c.primaryContactFirstName),
+          primary_contact_last_name: s(c.primaryContactLastName),
+          display_name: s(c.displayName),
+          company_name: s(c.companyName),
+          customer_language: c.customerLanguage || 'English',
+          primary_number: s(c.primaryPhone),
+          secondary_number: s(c.secondaryPhone),
+          email_address: s(c.email),
+          pan: s(c.pan),
+          gstin: s(c.gstin),
+          msme: s(c.msme),
+          sales_region: s(c.salesRegionId),
+          currency: s(c.currencyCode),
+          opening_balance: s(c.openingBalance) || '0.00',
+          payment_terms: s(c.paymentTermsId)
+        });
+
+        setBillingAddress(toAddress(d.addresses?.billing));
+        setShippingAddress(toAddress(d.addresses?.shipping));
+
+        if (Array.isArray(d.contacts) && d.contacts.length > 0) {
+          setContactPersons(d.contacts.map((ct) => ({
+            name: s(ct.contactName),
+            email: s(ct.emailAddress),
+            mobile_number: s(ct.mobileNumber),
+            designation: s(ct.designation)
+          })));
+        }
+
+        if (Array.isArray(d.banks) && d.banks.length > 0) {
+          setBankDetails(d.banks.map((b) => ({
+            bank_name: s(b.bankName),
+            account_holder: s(b.accountHolder),
+            account_number: s(b.accountNumber),
+            ifsc_code: s(b.ifscCode)
+          })));
+        }
+      } catch (err) {
+        console.error('Error loading customer:', err);
+        alert(err.message || 'Failed to load customer for editing');
+      }
+    };
+
+    loadCustomer();
+  }, [customerId, isEditMode]);
+
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -81,19 +158,19 @@ const [shippingAddress, setShippingAddress] = useState({
 
     if (type === 'billing') {
 
-        setBillingAddress(prev => ({
-            ...prev,
-            [name]: value
-        }));
+      setBillingAddress(prev => ({
+        ...prev,
+        [name]: value
+      }));
 
     } else {
 
-        setShippingAddress(prev => ({
-            ...prev,
-            [name]: value
-        }));
+      setShippingAddress(prev => ({
+        ...prev,
+        [name]: value
+      }));
     }
-};
+  };
 
   const handleBankDetailChange = (index, e) => {
     setBankDetails((currentDetails) => currentDetails.map((details, detailIndex) => (
@@ -197,8 +274,11 @@ const [shippingAddress, setShippingAddress] = useState({
         })),
       };
 
-      const response = await createCustomer(payload);
-      console.log('Customer created successfully:', response);
+      if (isEditMode) {
+        await updateCustomer(customerId, payload);
+      } else {
+        await createCustomer(payload);
+      }
       setShowSuccessModal(true);
     } catch (error) {
       console.error('Error creating customer:', error);
@@ -217,7 +297,7 @@ const [shippingAddress, setShippingAddress] = useState({
       {/* Top Banner with Stepper */}
       <div className="bg-white px-6 py-2 md:px-8 md:py-2 flex items-center justify-between border border-gray-200 rounded-2xl shadow-sm shrink-0">
         <h2 className="text-[20px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8]">
-          Create New Customer Profile
+          {isEditMode ? 'Edit Customer Profile' : 'Create New Customer Profile'}
         </h2>
 
         <div className="flex items-start mr-4 w-72">
@@ -265,8 +345,8 @@ const [shippingAddress, setShippingAddress] = useState({
                   <label className="w-36 text-[13px] font-bold text-[#1a233a] shrink-0">Customer Type <span className="text-red-500">*</span></label>
                   <div className="flex items-center space-x-6">
                     <label className="flex items-center cursor-pointer text-[15px] text-[#1a233a] font-medium">
-                      <div className={`flex items-center justify-center w-5 h-5 rounded-full mr-2.5 transition-all ${customerType === 'Business' ? 'bg-gradient-to-br from-[#ff3b30] to-[#b82db8]' : 'border border-gray-300'}`}>
-                        {customerType === 'Business' && <div className="w-2 h-2 bg-white rounded-full"></div>}
+                      <div className={`flex items-center justify-center w-5 h-5 rounded-full mr-2.5 transition-all ${formData.customer_type === 'Business' ? 'bg-gradient-to-br from-[#ff3b30] to-[#b82db8]' : 'border border-gray-300'}`}>
+                        {formData.customer_type === 'Business' && <div className="w-2 h-2 bg-white rounded-full"></div>}
                       </div>
                       <input
                         type="radio"
@@ -277,8 +357,8 @@ const [shippingAddress, setShippingAddress] = useState({
                       Business
                     </label>
                     <label className="flex items-center cursor-pointer text-[15px] text-[#1a233a] font-medium">
-                      <div className={`flex items-center justify-center w-5 h-5 rounded-full mr-2.5 transition-all ${customerType === 'Individual' ? 'bg-gradient-to-br from-[#ff3b30] to-[#b82db8]' : 'border border-gray-300'}`}>
-                        {customerType === 'Individual' && <div className="w-2 h-2 bg-white rounded-full"></div>}
+                      <div className={`flex items-center justify-center w-5 h-5 rounded-full mr-2.5 transition-all ${formData.customer_type === 'Individual' ? 'bg-gradient-to-br from-[#ff3b30] to-[#b82db8]' : 'border border-gray-300'}`}>
+                        {formData.customer_type === 'Individual' && <div className="w-2 h-2 bg-white rounded-full"></div>}
                       </div>
                       <input
                         type="radio"
@@ -550,7 +630,7 @@ const [shippingAddress, setShippingAddress] = useState({
 
                       <div className="flex items-start">
                         <label className="text-[13px] font-bold text-[#1a233a] w-36 shrink-0 pt-2">
-                          Documents 
+                          Documents
                           {/* <span className="text-red-500">*</span> */}
                         </label>
                         <div className="flex-1">
@@ -939,7 +1019,7 @@ const [shippingAddress, setShippingAddress] = useState({
       {/* ── Fixed Footer ── */}
       <div className="flex-shrink-0 bg-white border-t border-gray-200 px-8 py-3 flex justify-end items-center gap-3 z-20">
         <button
-          onClick={() => navigate('/customers')}
+          onClick={() => navigate(isEditMode ? `/customers/${customerId}` : '/customers')}
           className="px-4 py-1.5 rounded-lg border border-gray-300 text-[13px] font-semibold text-gray-600 hover:bg-gray-50 transition-colors bg-white shadow-sm"
         >
           Cancel
@@ -954,7 +1034,7 @@ const [shippingAddress, setShippingAddress] = useState({
           disabled={isSubmitting}
           className="px-6 py-1.5 rounded-lg bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] text-white text-[13px] font-bold shadow-sm hover:opacity-90 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? 'Saving...' : 'Save'}
+          {isSubmitting ? 'Saving...' : isEditMode ? 'Update' : 'Save'}
         </button>
       </div>
 
@@ -980,7 +1060,7 @@ const [shippingAddress, setShippingAddress] = useState({
 
               {/* Text Content */}
               <h3 className="text-[22px] font-bold text-[#22c55e] text-center mb-4 leading-snug">
-                Customer Profile<br />Successfully Created.
+                Customer Profile<br />Successfully {isEditMode ? 'Updated' : 'Created'}.
               </h3>
 
               <p className="text-[10px] font-bold text-gray-400 mb-6 tracking-wide">
@@ -990,7 +1070,7 @@ const [shippingAddress, setShippingAddress] = useState({
               <button
                 onClick={() => {
                   setShowSuccessModal(false);
-                  navigate('/customers');
+                  navigate(isEditMode ? `/customers/${customerId}` : '/customers');
                 }}
                 className="px-10 py-1.5 border-2 border-[#22c55e] text-[#22c55e] rounded-[10px] font-bold text-sm hover:bg-green-50 transition-colors bg-white shadow-sm"
               >

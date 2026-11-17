@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Mail, ChevronDown, Bookmark, Globe, Check, UploadCloud, Copy, Receipt, Package, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { createVendor } from '../../services/createvendorApi';
+import { useNavigate, useParams } from 'react-router-dom';
+import { createVendor, updateVendor } from '../../services/createvendorApi';
+import { getVendorDetails } from '../../services/vendorDetailsApi';
 
 const CreateVendorPage = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = Boolean(id);
   const [vendorType, setVendorType] = useState('Business');
   const [activeTab, setActiveTab] = useState('Other Details');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -69,6 +72,81 @@ const CreateVendorPage = () => {
     mobile_number: '',
     designation: '',
   }]);
+
+  useEffect(() => {
+    if (!isEditMode) return;
+
+    const s = (v) => (v === null || v === undefined ? '' : String(v));
+
+    const toAddress = (a) => ({
+      attention: s(a?.attention),
+      country_region: s(a?.country) || 'India',
+      street_1: s(a?.street1),
+      street_2: s(a?.street2),
+      city: s(a?.city),
+      district: '',
+      state: s(a?.state),
+      zip_code: s(a?.zipCode),
+      phone: s(a?.phone),
+      fax: s(a?.fax)
+    });
+
+    const loadVendor = async () => {
+      try {
+        const result = await getVendorDetails(id);
+        const d = result.data || {};
+        const v = d.vendor || {};
+
+        setVendorType(v.vendorType || 'Business');
+
+        setFormData({
+          vendor_type: v.vendorType || 'Business',
+          primary_contact_salutation: s(v.primaryContactPrefix),
+          primary_contact_first_name: s(v.primaryContactFirstName),
+          primary_contact_last_name: s(v.primaryContactLastName),
+          display_name: s(v.displayName),
+          company_name: s(v.companyName),
+          vendor_language: v.vendorLanguage || 'English',
+          primary_number: s(v.primaryPhone),
+          secondary_number: s(v.secondaryPhone),
+          email_address: s(v.email),
+          pan: s(v.pan),
+          gstin: s(v.gstin),
+          msme: s(v.msme),
+          sales_region: '',
+          currency: s(v.currencyCode),
+          opening_balance: s(v.openingBalance) || '0.00',
+          payment_terms: s(v.paymentTerms)
+        });
+
+        setBillingAddress(toAddress(d.addresses?.billing));
+        setShippingAddress(toAddress(d.addresses?.shipping));
+
+        if (Array.isArray(d.contacts) && d.contacts.length > 0) {
+          setContactPersons(d.contacts.map((ct) => ({
+            name: `${s(ct.firstName)} ${s(ct.lastName)}`.trim(),
+            email: s(ct.emailAddress),
+            mobile_number: s(ct.mobileNumber),
+            designation: s(ct.designation)
+          })));
+        }
+
+        if (Array.isArray(d.banks) && d.banks.length > 0) {
+          setBankDetails(d.banks.map((b) => ({
+            bank_name: s(b.bankName),
+            account_holder: s(b.accountHolder),
+            account_number: s(b.accountNumber),
+            ifsc_code: s(b.ifscCode)
+          })));
+        }
+      } catch (err) {
+        console.error('Error loading vendor:', err);
+        alert(err.message || 'Failed to load vendor for editing');
+      }
+    };
+
+    loadVendor();
+  }, [id, isEditMode]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -183,18 +261,21 @@ const CreateVendorPage = () => {
         })),
         contacts: contactPersons.map((contact) => ({
           name: contact.name,
-          emailAddress: contact.email,
+          emailAddress: contact.email || null,
           mobileNumber: contact.mobile_number,
           designation: contact.designation,
         })),
       };
 
-      const response = await createVendor(payload);
-      console.log('Vendor created successfully:', response);
+      if (isEditMode) {
+        await updateVendor(id, payload);
+      } else {
+        await createVendor(payload);
+      }
       setShowSuccessModal(true);
     } catch (error) {
-      console.error('Error creating vendor:', error);
-      alert(error.message || 'Failed to create vendor');
+      console.error('Error saving vendor:', error);
+      alert(error.message || 'Failed to save vendor');
     } finally {
       setIsSubmitting(false);
     }
@@ -208,7 +289,7 @@ const CreateVendorPage = () => {
       {/* Top Banner with Stepper */}
       <div className="bg-white px-6 py-2 md:px-8 md:py-2 flex items-center justify-between border border-gray-200 rounded-2xl shadow-sm shrink-0">
         <h2 className="text-[20px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8]">
-          Create New Vendor Profile
+          {isEditMode ? 'Edit Vendor Profile' : 'Create New Vendor Profile'}
         </h2>
 
         <div className="flex items-start mr-4 w-72">
@@ -547,7 +628,7 @@ const CreateVendorPage = () => {
 
                       <div className="flex items-start">
                         <label className="text-[13px] font-bold text-[#1a233a] w-36 shrink-0 pt-2">
-                          Documents 
+                          Documents
                           {/* <span className="text-red-500">*</span> */}
                         </label>
                         <div className="flex-1">
@@ -936,7 +1017,7 @@ const CreateVendorPage = () => {
       {/* ── Fixed Footer ── */}
       <div className="flex-shrink-0 bg-white border-t border-gray-200 px-8 py-3 flex justify-end items-center gap-3 z-20">
         <button
-          onClick={() => navigate('/vendors')}
+          onClick={() => navigate(isEditMode ? `/vendors/${id}` : '/vendors')}
           className="px-4 py-1.5 rounded-lg border border-gray-300 text-[13px] font-semibold text-gray-600 hover:bg-gray-50 transition-colors bg-white shadow-sm"
         >
           Cancel
@@ -951,7 +1032,7 @@ const CreateVendorPage = () => {
           disabled={isSubmitting}
           className="px-6 py-1.5 rounded-lg bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] text-white text-[13px] font-bold shadow-sm hover:opacity-90 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? 'Saving...' : 'Save'}
+          {isSubmitting ? 'Saving...' : isEditMode ? 'Update' : 'Save'}
         </button>
       </div>
 
@@ -977,7 +1058,7 @@ const CreateVendorPage = () => {
 
               {/* Text Content */}
               <h3 className="text-[22px] font-bold text-[#22c55e] text-center mb-4 leading-snug">
-                Vendor Profile<br />Successfully Created.
+                Vendor Profile<br />Successfully {isEditMode ? 'Updated' : 'Created'}.
               </h3>
 
               <p className="text-[10px] font-bold text-gray-400 mb-6 tracking-wide">
@@ -987,7 +1068,7 @@ const CreateVendorPage = () => {
               <button
                 onClick={() => {
                   setShowSuccessModal(false);
-                  navigate('/vendors');
+                  navigate(isEditMode ? `/vendors/${id}` : '/vendors');
                 }}
                 className="px-10 py-1.5 border-2 border-[#22c55e] text-[#22c55e] rounded-[10px] font-bold text-sm hover:bg-green-50 transition-colors bg-white shadow-sm"
               >

@@ -315,6 +315,8 @@ const PurchasePage = () => {
     else navigate('/purchase/procurement/1');
   };
 
+  const fill = isConfigTab && (loading || pagedRows.length >= limit);
+
   const defaultTitle =
     activeTab === 'Procurement'
       ? 'Procurement'
@@ -323,7 +325,7 @@ const PurchasePage = () => {
   const headerTitle = isConfigTab && statusFilter ? statusFilter : defaultTitle;
 
   return (
-    <main className="flex-1 overflow-y-auto bg-[#f4f7f9] flex flex-col relative p-1.5 gap-1.5">
+    <main className="flex-1 min-h-0 overflow-hidden bg-[#f4f7f9] flex flex-col relative p-1.5 gap-1.5">
 
       {/* Sub Navigation */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm shrink-0 px-8">
@@ -333,8 +335,8 @@ const PurchasePage = () => {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`flex items-center gap-1 px-4 py-2 text-[13px] border-b-2 transition-colors whitespace-nowrap ${activeTab === tab
-                  ? 'text-[#1a233a] font-bold border-[#1a233a]'
-                  : 'text-gray-500 font-medium border-transparent hover:text-gray-700 hover:border-gray-300'
+                ? 'text-[#1a233a] font-bold border-[#1a233a]'
+                : 'text-gray-500 font-medium border-transparent hover:text-gray-700 hover:border-gray-300'
                 }`}
             >
               {tab}
@@ -405,14 +407,14 @@ const PurchasePage = () => {
       </div>
 
       {/* Content */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col shrink-0">
-        <div className="overflow-x-auto w-full">
+      <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col ${fill ? 'flex-1 min-h-0' : 'shrink-0'}`}>
+        <div className={`w-full overflow-x-auto ${fill ? 'flex-1 min-h-0 overflow-y-auto' : ''}`}>
 
           {/* ---------- Expenses (unchanged) ---------- */}
           {activeTab === 'Expenses' && (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-[#f8f9fc] border-b border-gray-100 text-[13px]">
+                <tr className="bg-[#f8f9fc] border-b border-gray-100 text-sm">
                   <th className="py-2.5 pl-4 pr-3 w-16 text-center">
                     <input type="checkbox" className="rounded border-gray-300 w-3.5 h-3.5" onChange={() => { }} />
                   </th>
@@ -447,9 +449,9 @@ const PurchasePage = () => {
 
           {/* ---------- Bills / Purchase Order / Procurement ---------- */}
           {isConfigTab && (
-            <table className="w-full text-left border-collapse">
+            <table className={`w-full text-left border-collapse ${fill ? 'h-full' : ''}`}>
               <thead>
-                <tr className="bg-[#f8f9fc] border-b border-gray-100 text-[13px]">
+                <tr className="bg-[#f8f9fc] border-b border-gray-100 text-sm">
                   <th className="py-2.5 pl-4 pr-3 w-24">
                     <div className="flex items-center gap-3">
                       <button
@@ -526,30 +528,32 @@ const PurchasePage = () => {
         </div>
 
         {/* Footer */}
-        {isConfigTab && totalRecords > 0 && (
-          <div className="flex items-center justify-between px-6 py-2 border-t border-gray-200 bg-white shrink-0">
-            <div className="text-[13px] text-gray-500">
-              Showing {pagedRows.length} of {totalRecords} {CONFIG[activeTab].noun}
-            </div>
+        {((isConfigTab && totalRecords > 0) || activeTab === 'Expenses') && (
+          <div className="flex items-center justify-between gap-4 px-6 py-3 border-t border-gray-200 bg-white text-xs text-gray-500 shrink-0">
+            <span>
+              {activeTab === 'Expenses'
+                ? `Showing ${expenses.length} of ${expenses.length} expense(s)`
+                : `Showing ${pagedRows.length} of ${totalRecords} ${CONFIG[activeTab].noun}`}
+            </span>
 
-            {totalPages > 1 && (
+            {isConfigTab && totalPages > 1 && (
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => page > 1 && setPage((p) => p - 1)}
                   disabled={page === 1}
-                  className="px-3 py-1 text-[13px] border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-3 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
-                <span className="text-[13px] text-gray-600 whitespace-nowrap">
+                <span className="whitespace-nowrap">
                   Page {page} of {totalPages}
                 </span>
                 <button
                   type="button"
                   onClick={() => page < totalPages && setPage((p) => p + 1)}
                   disabled={page >= totalPages}
-                  className="px-3 py-1 text-[13px] border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-3 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>

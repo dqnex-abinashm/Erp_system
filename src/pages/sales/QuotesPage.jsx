@@ -27,7 +27,7 @@ const QuotesPage = () => {
   ];
 
   return (
-    <main className="flex-1 overflow-y-auto bg-[#f4f7f9] flex flex-col relative p-1.5 gap-1.5">
+        <main className="flex-1 min-h-0 overflow-hidden bg-[#f4f7f9] flex flex-col relative p-1.5 gap-1.5">
 
       {/* Sub Navigation */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm shrink-0 px-8">
@@ -102,9 +102,7 @@ const QuotesPage = () => {
       </div>
 
       {/* Table Area */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 overflow-hidden flex flex-col">
-        <QuotesTable statusFilter={statusFilter} />
-      </div>
+      <QuotesTable statusFilter={statusFilter} />
 
     </main>
   );

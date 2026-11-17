@@ -174,6 +174,10 @@ const QuotesTable = ({ statusFilter = '' }) => {
 
   const handleReset = () => setDraft(DEFAULT_COLUMNS);
 
+  const fill = loading || quotes.length === 0 || paginatedQuotes.length >= limit;
+
+  const cardClass = `bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col ${fill ? 'flex-1 min-h-0' : ''}`;
+
   const cellClass = 'py-3 px-3 text-[#1a233a] font-medium';
 
   const renderCell = (key, quote) => {
@@ -213,24 +217,28 @@ const QuotesTable = ({ statusFilter = '' }) => {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center p-8 text-center text-gray-500 font-medium">
-        Loading quotes...
+      <div className={cardClass}>
+        <div className="flex-1 flex items-center justify-center p-8 text-center text-gray-500 font-medium">
+          Loading quotes...
+        </div>
       </div>
     );
   }
 
   if (quotes.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center p-8 text-center text-gray-500 font-medium">
-        No quotes found. Create a new quote to get started.
+      <div className={cardClass}>
+        <div className="flex-1 flex items-center justify-center p-8 text-center text-gray-500 font-medium">
+          No quotes found. Create a new quote to get started.
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col">
-      <div className="overflow-x-auto w-full">
-        <table className="quotes-table w-full text-left border-collapse whitespace-nowrap">
+    <div className={cardClass}>
+      <div className={`w-full overflow-x-auto ${fill ? 'flex-1 min-h-0 overflow-y-auto' : ''}`}>
+        <table className={`quotes-table w-full text-left border-collapse whitespace-nowrap ${fill ? 'h-full' : ''}`}>
           <thead className="sticky top-0 z-10">
             <tr className="bg-[#f4f6f8] border-b border-gray-200 text-sm">
               <th className="py-3 pl-4 pr-3 font-bold text-[#6b778c] w-24">

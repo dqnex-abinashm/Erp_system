@@ -28,3 +28,31 @@ export const createCustomer = async (customerData) => {
 
     return result;
 };
+
+export const updateCustomer = async (customerId, customerData) => {
+
+    const response = await fetch(
+        `${API_BASE_URL}/customers/${customerId}`,
+        {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(customerData)
+        }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        if (result.errors && Array.isArray(result.errors)) {
+            const errorMessages = result.errors.map(err => err.msg).join(', ');
+            throw new Error(`Validation failed: ${errorMessages}`);
+        }
+        throw new Error(
+            result.message || 'Failed to update customer'
+        );
+    }
+
+    return result;
+};

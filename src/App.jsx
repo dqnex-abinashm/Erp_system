@@ -58,6 +58,7 @@ function App() {
           <Route path="customers" element={<CustomerPage />} />
           <Route path="customers/new" element={<CreateCustomerPage />} />
           <Route path="customers/:customerId" element={<CustomerDetailsPage />} />
+          <Route path="customers/:customerId/edit" element={<CreateCustomerPage />} />
 
           <Route path="calendar" element={<ManufacturingCalendarPage />} />
 
@@ -65,16 +66,18 @@ function App() {
           <Route path="sales" element={<Navigate to="/sales/quotes" replace />} />
           <Route path="sales/orders" element={<SalesPage />} />
           <Route path="sales/new" element={<CreateSalesOrderPage />} />
-          <Route path="sales/order/:id" element={<SalesOrderDetailPage />} />
+          <Route path="sales/order/:id" element={<SalesOrderDetailPage />} />          
           <Route path="sales/quotes" element={<QuotesPage />} />
           <Route path="sales/quotes/new" element={<CreateQuotePage />} />
           <Route path="sales/quotes/:id" element={<QuoteDetailPage />} />
+          <Route path="sales/quotes/:id/edit" element={<CreateQuotePage />} />
           <Route path="sales/invoices" element={<InvoicesPage />} />
           <Route path="sales/invoices/new" element={<CreateInvoicePage />} />
           <Route path="sales/invoices/:id" element={<InvoiceDetailPage />} />
           <Route path="vendors" element={<VendorsPage />} />
           <Route path="vendors/new" element={<CreateVendorPage />} />
           <Route path="vendors/:id" element={<VendorDetailsPage />} />
+          <Route path="vendors/:id/edit" element={<CreateVendorPage />} />
           <Route path="purchase" element={<PurchasePage />} />
           <Route path="purchase/new" element={<CreatePurchaseOrderPage />} />
           <Route path="purchase/order/:id" element={<PurchaseOrderDetailPage />} />
