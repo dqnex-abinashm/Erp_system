@@ -46,69 +46,83 @@ import CreatePackagePage from './pages/supply-chain/Createpackagepage';
 import PackageDetailsPage from './pages/supply-chain/Packagedetailspage';
 import CreateShipmentPage from './pages/supply-chain/Createshipmentpage';
 import ShipmentDetailsPage from './pages/supply-chain/Shipmentdetailspage';
+import LoginPage from './pages/auth/LoginPage';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import { AuthProvider } from './context/AuthContext';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<MainLayout />}>
-          {/* Dashboard Route */}
-          <Route index element={<DashboardPage />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Authentication Route */}
+          <Route path="/login" element={<LoginPage />} />
 
-          <Route path="customers" element={<CustomerPage />} />
-          <Route path="customers/new" element={<CreateCustomerPage />} />
-          <Route path="customers/:customerId" element={<CustomerDetailsPage />} />
-          <Route path="customers/:customerId/edit" element={<CreateCustomerPage />} />
+          {/* Protected Application Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<MainLayout />}>
+              {/* Dashboard Route */}
+              <Route index element={<DashboardPage />} />
 
-          <Route path="calendar" element={<ManufacturingCalendarPage />} />
+              <Route path="customers" element={<CustomerPage />} />
+              <Route path="customers/new" element={<CreateCustomerPage />} />
+              <Route path="customers/:customerId" element={<CustomerDetailsPage />} />
+              <Route path="customers/:customerId/edit" element={<CreateCustomerPage />} />
 
-          {/* Other routes from sidebar */}
-          <Route path="sales" element={<Navigate to="/sales/quotes" replace />} />
-          <Route path="sales/orders" element={<SalesPage />} />
-          <Route path="sales/new" element={<CreateSalesOrderPage />} />
-          <Route path="sales/order/:id" element={<SalesOrderDetailPage />} />          
-          <Route path="sales/quotes" element={<QuotesPage />} />
-          <Route path="sales/quotes/new" element={<CreateQuotePage />} />
-          <Route path="sales/quotes/:id" element={<QuoteDetailPage />} />
-          <Route path="sales/quotes/:id/edit" element={<CreateQuotePage />} />
-          <Route path="sales/invoices" element={<InvoicesPage />} />
-          <Route path="sales/invoices/new" element={<CreateInvoicePage />} />
-          <Route path="sales/invoices/:id" element={<InvoiceDetailPage />} />
-          <Route path="vendors" element={<VendorsPage />} />
-          <Route path="vendors/new" element={<CreateVendorPage />} />
-          <Route path="vendors/:id" element={<VendorDetailsPage />} />
-          <Route path="vendors/:id/edit" element={<CreateVendorPage />} />
-          <Route path="purchase" element={<PurchasePage />} />
-          <Route path="purchase/new" element={<CreatePurchaseOrderPage />} />
-          <Route path="purchase/order/:id" element={<PurchaseOrderDetailPage />} />
-          <Route path="purchase/expense/new" element={<CreateExpensePage />} />
-          <Route path="purchase/expense/:id" element={<ExpenseDetailPage />} />
-          <Route path="purchase/bill/new" element={<CreateBillPage />} />
-          <Route path="purchase/bill/:id" element={<BillDetailPage />} />
-          <Route path="purchase/procurement/new" element={<CreateProcurementPage />} />
-          <Route path="purchase/procurement/:id" element={<ProcurementDetailPage />} />
-          <Route path="inventory" element={<InventoryPage />} />
-          <Route path="inventory/control" element={<InventoryControlPage />} />
-          <Route path="inventory/control/new" element={<CreateInventoryControlPage />} />
-          <Route path="inventory/control/:id" element={<InventoryControlDetailPage />} />
-          <Route path="inventory/new" element={<CreateInventoryItemPage />} />
-          <Route path="inventory/:id" element={<InventoryItemDetailPage />} />
-          <Route path="production" element={<ProductionPage />} />
-          <Route path="production/manufacturing/new" element={<CreateManufacturingPage />} />
-          <Route path="production/manufacturing/:id" element={<ManufacturingOrderDetailsPage />} />
-          <Route path="production/job-card/:id" element={<CorrugatorJobDetailsPage />} />
-          <Route path="machine" element={<MachinePage />} />
-          <Route path="machine/new" element={<CreateMachinePage />} />
-          <Route path="machine/:id" element={<MachineDetailsPage />} />
-          <Route path="supply-chain" element={<SupplyChainPage />} />
-          <Route path="supply-chain/packages/new" element={<CreatePackagePage />} />
-          <Route path="supply-chain/packages/:id" element={<PackageDetailsPage />} />
-          <Route path="supply-chain/shipments/new" element={<CreateShipmentPage />} />
-          <Route path="supply-chain/shipments/:id" element={<ShipmentDetailsPage />} />
-          <Route path="user-management" element={<UserManagementPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+              <Route path="calendar" element={<ManufacturingCalendarPage />} />
+
+              {/* Other routes from sidebar */}
+              <Route path="sales" element={<Navigate to="/sales/quotes" replace />} />
+              <Route path="sales/orders" element={<SalesPage />} />
+              <Route path="sales/new" element={<CreateSalesOrderPage />} />
+              <Route path="sales/order/:id" element={<SalesOrderDetailPage />} />          
+              <Route path="sales/quotes" element={<QuotesPage />} />
+              <Route path="sales/quotes/new" element={<CreateQuotePage />} />
+              <Route path="sales/quotes/:id" element={<QuoteDetailPage />} />
+              <Route path="sales/quotes/:id/edit" element={<CreateQuotePage />} />
+              <Route path="sales/invoices" element={<InvoicesPage />} />
+              <Route path="sales/invoices/new" element={<CreateInvoicePage />} />
+              <Route path="sales/invoices/:id" element={<InvoiceDetailPage />} />
+              <Route path="vendors" element={<VendorsPage />} />
+              <Route path="vendors/new" element={<CreateVendorPage />} />
+              <Route path="vendors/:id" element={<VendorDetailsPage />} />
+              <Route path="vendors/:id/edit" element={<CreateVendorPage />} />
+              <Route path="purchase" element={<PurchasePage />} />
+              <Route path="purchase/new" element={<CreatePurchaseOrderPage />} />
+              <Route path="purchase/order/:id" element={<PurchaseOrderDetailPage />} />
+              <Route path="purchase/expense/new" element={<CreateExpensePage />} />
+              <Route path="purchase/expense/:id" element={<ExpenseDetailPage />} />
+              <Route path="purchase/bill/new" element={<CreateBillPage />} />
+              <Route path="purchase/bill/:id" element={<BillDetailPage />} />
+              <Route path="purchase/procurement/new" element={<CreateProcurementPage />} />
+              <Route path="purchase/procurement/:id" element={<ProcurementDetailPage />} />
+              <Route path="inventory" element={<InventoryPage />} />
+              <Route path="inventory/control" element={<InventoryControlPage />} />
+              <Route path="inventory/control/new" element={<CreateInventoryControlPage />} />
+              <Route path="inventory/control/:id" element={<InventoryControlDetailPage />} />
+              <Route path="inventory/new" element={<CreateInventoryItemPage />} />
+              <Route path="inventory/:id" element={<InventoryItemDetailPage />} />
+              <Route path="production" element={<ProductionPage />} />
+              <Route path="production/manufacturing/new" element={<CreateManufacturingPage />} />
+              <Route path="production/manufacturing/:id" element={<ManufacturingOrderDetailsPage />} />
+              <Route path="production/job-card/:id" element={<CorrugatorJobDetailsPage />} />
+              <Route path="machine" element={<MachinePage />} />
+              <Route path="machine/new" element={<CreateMachinePage />} />
+              <Route path="machine/:id" element={<MachineDetailsPage />} />
+              <Route path="supply-chain" element={<SupplyChainPage />} />
+              <Route path="supply-chain/packages/new" element={<CreatePackagePage />} />
+              <Route path="supply-chain/packages/:id" element={<PackageDetailsPage />} />
+              <Route path="supply-chain/shipments/new" element={<CreateShipmentPage />} />
+              <Route path="supply-chain/shipments/:id" element={<ShipmentDetailsPage />} />
+              <Route path="user-management" element={<UserManagementPage />} />
+            </Route>
+          </Route>
+
+          {/* Catch-all redirect */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

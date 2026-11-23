@@ -1,11 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Calendar, CalendarDays, HelpCircle, Bell } from 'lucide-react';
+import { Search, Calendar, CalendarDays, HelpCircle, Bell, LogOut, ChevronDown, Shield } from 'lucide-react';
 import { formatDate, formatTime } from '../../utils/helpers';
+import { useAuth } from '../../context/AuthContext';
 
 const Header = ({ searchQuery, setSearchQuery }) => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
+
+  const displayName = user?.name || 'Administrator';
+  const displayEmail = user?.email || 'admin@gmail.com';
+  const displayInitials = displayName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -174,33 +202,128 @@ const Header = ({ searchQuery, setSearchQuery }) => {
         {/* Divider
         <div style={{ width: '1px', height: '24px', background: '#e8ecef' }} /> */}
 
-        {/* User Profile */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+        {/* User Profile with Dropdown */}
+        <div ref={dropdownRef} style={{ position: 'relative' }}>
           <div
+            onClick={() => setShowDropdown(!showDropdown)}
             style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #ff3344 0%, #a044b7 100%)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '14px',
-              fontWeight: 500,
-              color: '#fff',
-              flexShrink: 0,
+              gap: '10px',
+              cursor: 'pointer',
+              padding: '4px 8px',
+              borderRadius: '8px',
+              transition: 'background 0.2s',
             }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = '#f8f9fa')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
-            MT
-          </div>
-          <div>
-            <div style={{ fontSize: '14px', fontWeight: 500, color: '#000', lineHeight: 1.1 }}>
-              Maruty Tandon
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '13px',
+                fontWeight: 600,
+                color: '#fff',
+                flexShrink: 0,
+              }}
+            >
+              {displayInitials}
             </div>
-            <div style={{ fontSize: '11px', color: '#868e96', lineHeight: 1.1, marginTop: '2px' }}>
-              marutyon43@gmail.com
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', lineHeight: 1.2 }}>
+                {displayName}
+              </div>
+              <div style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.2 }}>
+                {displayEmail}
+              </div>
             </div>
+            <ChevronDown
+              style={{
+                width: '14px',
+                height: '14px',
+                color: '#64748b',
+                transition: 'transform 0.2s',
+                transform: showDropdown ? 'rotate(180deg)' : 'none',
+              }}
+            />
           </div>
+
+          {/* Profile Dropdown Menu */}
+          {showDropdown && (
+            <div
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: 'calc(100% + 8px)',
+                width: '240px',
+                background: '#ffffff',
+                borderRadius: '12px',
+                boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+                border: '1px solid #e2e8f0',
+                padding: '8px',
+                zIndex: 100,
+              }}
+            >
+              <div style={{ padding: '8px 12px', borderBottom: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>
+                  {displayName}
+                </div>
+                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                  {displayEmail}
+                </div>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '2px 8px',
+                    borderRadius: '9999px',
+                    background: '#eff6ff',
+                    color: '#2563eb',
+                    fontSize: '10px',
+                    fontWeight: 600,
+                    marginTop: '6px',
+                  }}
+                >
+                  <Shield style={{ width: '10px', height: '10px' }} />
+                  {user?.role || 'Administrator'}
+                </div>
+              </div>
+
+              <div style={{ padding: '4px 0' }}>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '8px 12px',
+                    background: 'none',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    color: '#ef4444',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = '#fef2f2')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+                >
+                  <LogOut style={{ width: '16px', height: '16px' }} />
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>
