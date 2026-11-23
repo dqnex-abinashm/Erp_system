@@ -19,7 +19,8 @@ import {
   Truck,
   Receipt,
   PackageCheck,
-  HandCoins
+  HandCoins,
+  FilePlus2
 } from 'lucide-react';
 
 
@@ -34,6 +35,7 @@ const SalesOrderDetailPage = () => {
   const [activeOrder, setActiveOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [convertingToMO, setConvertingToMO] = useState(false);
+  const [creatingInvoice, setCreatingInvoice] = useState(false);
   const [conversionError, setConversionError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [orderDate, setOrderDate] = useState('');
@@ -194,6 +196,36 @@ const SalesOrderDetailPage = () => {
   };
 
 
+  const handleCreateInvoice = async () => {
+    if (creatingInvoice) return;
+
+    try {
+      setCreatingInvoice(true);
+      setConversionError("");
+
+      const response = await fetch(`${API_BASE_URL}/invoices/from-sales-order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sales_order_id: activeOrder.sales_order_id ?? activeOrder.id,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || result.success === false) {
+        throw new Error(result.message || "Failed to create invoice.");
+      }
+
+      navigate("/sales/invoices");
+    } catch (error) {
+      setConversionError(error.message);
+    } finally {
+      setCreatingInvoice(false);
+    }
+  };
+
+
   return (
     <main className="flex-1 overflow-y-hidden bg-[#f8f9fb] flex flex-col relative p-1.5 gap-1.5">
 
@@ -233,8 +265,8 @@ const SalesOrderDetailPage = () => {
               let lineClass = "bg-gray-200";
 
               if (step.status === 'completed') {
-                textClass = "text-green-600 font-bold";
-                iconBgClass = "bg-green-400 ring-4 ring-green-100";
+                textClass = "text-green-600 font-semibold";
+                iconBgClass = "bg-green-400";
                 iconTextClass = "text-white";
                 // Color the line to the next step
                 if (index < steps.length - 1 && steps[index + 1].status === 'active') {
@@ -243,12 +275,12 @@ const SalesOrderDetailPage = () => {
                   lineClass = "bg-green-400";
                 }
               } else if (step.status === 'active') {
-                textClass = "text-gray-900 font-bold";
-                iconBgClass = "bg-gradient-to-br from-[#ff7a59] via-[#d54a88] to-[#402de8] ring-4 ring-pink-50";
+                textClass = "text-gray-900 font-semibold";
+                iconBgClass = "bg-gradient-to-br from-[#ff7a59] via-[#d54a88] to-[#402de8] shadow-md";
                 iconTextClass = "text-white";
                 lineClass = "bg-gray-200";
               } else {
-                textClass = "text-gray-500 font-medium";
+                textClass = "text-gray-500 font-semibold";
                 iconBgClass = "bg-white border-2 border-gray-200";
                 iconTextClass = "text-gray-400";
                 lineClass = "bg-gray-200";
@@ -257,10 +289,10 @@ const SalesOrderDetailPage = () => {
               return (
                 <React.Fragment key={step.name}>
                   <div className="flex flex-col items-center shrink-0 w-[90px]">
-                    <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${iconBgClass} ${iconTextClass}`}>
-                      <Icon className="w-4 h-4" strokeWidth={2} />
+                    <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center mb-1 ${iconBgClass} ${iconTextClass}`}>
+                      <Icon className="w-3.5 h-3.5" strokeWidth={step.status === 'active' ? 2.5 : 2} />
                     </div>
-                    <span className={`mt-2 text-[11px] font-medium text-center ${textClass}`}>
+                    <span className={`text-[10px] text-center ${textClass}`}>
                       {step.name}
                     </span>
                   </div>
@@ -364,6 +396,14 @@ const SalesOrderDetailPage = () => {
                 </button>
                 <button className="w-8 h-8 bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-full flex items-center justify-center text-gray-600 transition-colors shadow-sm">
                   <Printer className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={handleCreateInvoice}
+                  disabled={creatingInvoice}
+                  className="flex items-center px-4 py-1.5 bg-gradient-to-r from-[#ff7a59] via-[#d54a88] to-[#402de8] hover:opacity-90 text-white rounded-full text-xs font-bold transition-opacity shadow-sm disabled:opacity-60"
+                >
+                  <FilePlus2 className="w-3 h-3 mr-1.5" />
+                  {creatingInvoice ? "Creating..." : "Create Invoice"}
                 </button>
                 <button
                   onClick={handleConvertToMO}
