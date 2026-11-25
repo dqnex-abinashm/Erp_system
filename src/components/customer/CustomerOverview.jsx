@@ -152,6 +152,28 @@ const CustomerProfile = ({
                 />
 
                 <InfoRow
+                    label="Website"
+                    value={
+                        customer.website
+                            ? (
+                                <a
+                                    href={
+                                        /^https?:\/\//i.test(customer.website)
+                                            ? customer.website
+                                            : `https://${customer.website}`
+                                    }
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hover:underline break-all"
+                                >
+                                    {customer.website}
+                                </a>
+                            )
+                            : null
+                    }
+                />
+
+                <InfoRow
                     label="PAN"
                     value={customer.pan}
                 />
@@ -207,16 +229,21 @@ const PaymentDetails = ({
                 <InfoRow
                     label="Currency"
                     value={
-                        customer.currencyCode === 'INR'
-                            ? 'INR (₹)'
-                            : customer.currencyCode
+                        customer.currencyCode
+                            ? (
+                                CURRENCY_SYMBOLS[customer.currencyCode]
+                                    ? `${customer.currencyCode} (${CURRENCY_SYMBOLS[customer.currencyCode]})`
+                                    : customer.currencyCode
+                            )
+                            : null
                     }
                 />
 
                 <InfoRow
                     label="Opening Balance"
                     value={formatCurrency(
-                        customer.openingBalance
+                        customer.openingBalance,
+                        customer.currencyCode
                     )}
                 />
 
@@ -615,11 +642,29 @@ function getInitials(name = '') {
 }
 
 
-function formatCurrency(value) {
+const CURRENCY_SYMBOLS = {
+    INR: '₹',
+    USD: '$',
+    EUR: '€',
+    GBP: '£',
+    AED: 'AED ',
+    AUD: 'A$',
+    CAD: 'C$'
+};
 
-    return `₹${Number(
+// Shows the amount in the customer's own currency (INR keeps Indian grouping)
+function formatCurrency(value, currencyCode = 'INR') {
+
+    const code = currencyCode || 'INR';
+
+    const symbol =
+        CURRENCY_SYMBOLS[code] !== undefined
+            ? CURRENCY_SYMBOLS[code]
+            : `${code} `;
+
+    return `${symbol}${Number(
         value || 0
-    ).toLocaleString('en-IN')}`;
+    ).toLocaleString(code === 'INR' ? 'en-IN' : 'en-US')}`;
 }
 
 

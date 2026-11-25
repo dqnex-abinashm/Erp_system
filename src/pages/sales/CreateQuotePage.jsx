@@ -43,6 +43,7 @@ const CreateQuotePage = () => {
   const [expireDate, setExpireDate] = useState('');
   const [salesMan, setSalesMan] = useState('1');
   const [projectName, setProjectName] = useState('');
+  const [quoteNumber, setQuoteNumber] = useState('');
   const [errors, setErrors] = useState({});
   const [attempted, setAttempted] = useState(false);
   const [isDraftSaving, setIsDraftSaving] = useState(false);
@@ -113,6 +114,7 @@ const CreateQuotePage = () => {
 
         setSelectedCustomer(q.customerId ? String(q.customerId) : '');
         setReferenceNo(q.referenceNo || '');
+        setQuoteNumber(q.quoteNo || '');
         setQuoteDate(q.quoteDateIso || '');
         setExpireDate(q.expiryDateIso || '');
         setSalesMan(q.salesperson ? String(q.salesperson) : '1');
@@ -620,7 +622,14 @@ const CreateQuotePage = () => {
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-[#1a233a]">Quote Details</h3>
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-xl font-bold text-[#1a233a]">Quote Details</h3>
+                    {isEditMode && quoteNumber && (
+                      <span className="px-3 py-0.5 rounded-full bg-[#f5f3ff] border border-[#e4dcfb] text-[13px] font-bold text-[#7b46ef]">
+                        {quoteNumber}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-400 mt-1">Determine product size limits, raw material configurations, and volume structures.</p>
                 </div>
               </div>
