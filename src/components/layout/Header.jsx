@@ -223,14 +223,15 @@ const Header = ({ searchQuery, setSearchQuery }) => {
                 width: '36px',
                 height: '36px',
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
+                background: 'linear-gradient(135deg, #ff7a59 0%, #d54a88 50%, #402de8 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '13px',
-                fontWeight: 600,
+                fontWeight: 700,
                 color: '#fff',
                 flexShrink: 0,
+                boxShadow: '0 2px 8px rgba(213, 74, 136, 0.25)',
               }}
             >
               {displayInitials}
@@ -284,10 +285,10 @@ const Header = ({ searchQuery, setSearchQuery }) => {
                     gap: '4px',
                     padding: '2px 8px',
                     borderRadius: '9999px',
-                    background: '#eff6ff',
-                    color: '#2563eb',
+                    background: 'linear-gradient(135deg, rgba(255,122,89,0.12) 0%, rgba(213,74,136,0.12) 50%, rgba(64,45,232,0.12) 100%)',
+                    color: '#d54a88',
                     fontSize: '10px',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     marginTop: '6px',
                   }}
                 >
