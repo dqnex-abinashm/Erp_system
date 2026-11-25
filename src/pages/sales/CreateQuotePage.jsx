@@ -6,6 +6,32 @@ import {
   PackagePlus, PackageCheck, HandCoins, Check, Phone
 } from 'lucide-react';
 
+/* ───────── Validation helpers ───────── */
+const LIMITS = {
+  REF_MAX: 30,
+  PROJECT_MAX: 50,
+  NAME_MAX: 50,
+  DESC_MAX: 200,
+  QTY_MAX: 1000000,
+  DIM_MAX: 1000,      // cm
+  GSM_MIN: 50,
+  GSM_MAX: 500,
+  BF_MIN: 1,
+  BF_MAX: 60,
+};
+const REF_RE = /^[A-Za-z0-9][A-Za-z0-9\-_/# ]*$/;
+const TEXT_RE = /^[A-Za-z0-9][A-Za-z0-9 .,&\-_/()]*$/;
+const DECIMAL_RE = /^\d+(\.\d{1,2})?$/;
+
+const digitsOnly = (v, max) => v.replace(/\D/g, '').slice(0, max);
+const noLeadingSpace = (v) => v.replace(/^\s+/, '').replace(/\s{2,}/g, ' ');
+const cleanDecimal = (v) => {
+  let s = v.replace(/[^0-9.]/g, '');
+  if (s.startsWith('.')) s = `0${s}`;
+  const [i, ...rest] = s.split('.');
+  return rest.length ? `${i}.${rest.join('').slice(0, 2)}` : i;
+};
+
 const CreateQuotePage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -18,6 +44,8 @@ const CreateQuotePage = () => {
   const [salesMan, setSalesMan] = useState('1');
   const [projectName, setProjectName] = useState('');
   const [errors, setErrors] = useState({});
+  const [attempted, setAttempted] = useState(false);
+  const [isDraftSaving, setIsDraftSaving] = useState(false);
 
   // Customer state
   const [customers, setCustomers] = useState([]);
@@ -25,7 +53,7 @@ const CreateQuotePage = () => {
   const selectedCustomerObj = customers.find(c => String(c.customerId) === String(selectedCustomer));
 
   const [boxType, setBoxType] = useState('');
-  const [printType, setPrintType] = useState('');
+  const [printType, setPrintType] = useState('Plain');
   const [paperType, setPaperType] = useState('NS');
   const [boxSize, setBoxSize] = useState('medium');
 
@@ -71,7 +99,7 @@ const CreateQuotePage = () => {
     if (!isEditMode) return;
 
     const toStr = (v) =>
-      v === null || v === undefined || v === '' ? '' : String(Number(v));
+      v === null || v === undefined || v === '' || Number(v) === 0 ? '' : String(Number(v));
 
     const loadQuote = async () => {
       try {
@@ -124,17 +152,76 @@ const CreateQuotePage = () => {
     loadQuote();
   }, [id, isEditMode]);
 
+  /* ── Validation ── */
+  const validateForm = () => {
+    const e = {};
+
+    if (!selectedCustomer) e.customer = 'Customer is required';
+
+    if (referenceNo.trim() && !REF_RE.test(referenceNo.trim())) {
+      e.referenceNo = 'Only letters, numbers, space and - _ / # are allowed';
+    }
+
+    if (quoteDate && expireDate && expireDate < quoteDate) {
+      e.expireDate = 'Expire date cannot be before quote date';
+    }
+
+    if (projectName.trim() && !TEXT_RE.test(projectName.trim())) {
+      e.projectName = 'Only letters, numbers, space and . , & - _ / ( ) are allowed';
+    }
+
+    if (!itemName.trim()) e.itemName = 'Item name is required';
+    else if (itemName.trim().length < 2) e.itemName = 'Item name must be at least 2 characters';
+    else if (!TEXT_RE.test(itemName.trim())) e.itemName = 'Only letters, numbers, space and . , & - _ / ( ) are allowed';
+
+    if (!itemDescription.trim()) e.itemDescription = 'Item description is required';
+    else if (itemDescription.trim().length < 3) e.itemDescription = 'Description must be at least 3 characters';
+
+    if (!quantity) e.quantity = 'Quantity is required';
+    else if (!/^\d+$/.test(quantity) || Number(quantity) < 1) e.quantity = 'Enter a whole number of 1 or more';
+    else if (Number(quantity) > LIMITS.QTY_MAX) e.quantity = `Maximum ${LIMITS.QTY_MAX.toLocaleString('en-IN')}`;
+
+    if (!boxType) e.boxType = 'Box type is required';
+    if (!plyType) e.plyType = 'Ply type is required';
+
+    [['length', 'Length', length], ['width', 'Width', width], ['height', 'Height', height]].forEach(([key, label, val]) => {
+      if (!String(val).trim()) e[key] = `${label} is required`;
+      else if (!DECIMAL_RE.test(val)) e[key] = 'Enter a valid number (max 2 decimals)';
+      else if (Number(val) <= 0) e[key] = `${label} must be greater than 0`;
+      else if (Number(val) > LIMITS.DIM_MAX) e[key] = `Maximum ${LIMITS.DIM_MAX} cm`;
+    });
+
+    [['topPaperGsm', 'Top GSM', topPaperGsm], ['linerGsm', 'Liner GSM', linerGsm], ['fluteGsm', 'Flute GSM', fluteGsm]].forEach(([key, label, val]) => {
+      if (!val) e[key] = `${label} is required`;
+      else if (!/^\d+$/.test(val)) e[key] = 'Digits only';
+      else if (Number(val) < LIMITS.GSM_MIN || Number(val) > LIMITS.GSM_MAX) e[key] = `GSM must be ${LIMITS.GSM_MIN}-${LIMITS.GSM_MAX}`;
+    });
+
+    // BF is optional, but if entered it must be valid
+    [['topPaperBf', topPaperBf], ['linerBf', linerBf], ['fluteBf', fluteBf]].forEach(([key, val]) => {
+      if (!val) return;
+      if (!/^\d+$/.test(val)) e[key] = 'BF must be a whole number';
+      else if (Number(val) < LIMITS.BF_MIN || Number(val) > LIMITS.BF_MAX) e[key] = `BF must be ${LIMITS.BF_MIN}-${LIMITS.BF_MAX}`;
+    });
+
+    return e;
+  };
+
+  // After the first Save click, keep errors updated live while the user types
+  useEffect(() => {
+    if (attempted) setErrors(validateForm());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attempted, selectedCustomer, referenceNo, quoteDate, expireDate, projectName, itemName, itemDescription, quantity, boxType, plyType, length, width, height, topPaperGsm, topPaperBf, linerGsm, linerBf, fluteGsm, fluteBf]);
+
+  const inputCls = (k) => `w-full border ${errors[k] ? 'border-red-500' : 'border-gray-200'} rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm`;
+  const errMsg = (k) => (errors[k] ? <p className="text-red-500 text-[11px] mt-1">{errors[k]}</p> : null);
+
   const handleCalculate = async () => {
     try {
-      if (!length || !width || !height) {
-        alert('Please enter length, width, and height');
-        return;
-      }
-
-      if (!topPaperGsm || !linerGsm || !fluteGsm) {
-        alert('Please enter GSM values for Top Paper, Liner, and Flute');
-        return;
-      }
+      const specKeys = ['length', 'width', 'height', 'topPaperGsm', 'linerGsm', 'fluteGsm', 'topPaperBf', 'linerBf', 'fluteBf'];
+      const specErrors = Object.fromEntries(Object.entries(validateForm()).filter(([k]) => specKeys.includes(k)));
+      setErrors(specErrors);
+      if (Object.keys(specErrors).length > 0) return;
 
       const response = await fetch('http://localhost:3000/api/v1/quotes/calculate-board', {
         method: 'POST',
@@ -179,32 +266,105 @@ const CreateQuotePage = () => {
     }
   };
 
+  /* ── Save Draft: only Customer Selection + Quote Details are required ── */
+  const draftErrors = () => {
+    const e = {};
+    if (!selectedCustomer) e.customer = 'Select a customer to save a draft';
+
+    if (referenceNo.trim() && !REF_RE.test(referenceNo.trim())) {
+      e.referenceNo = 'Only letters, numbers, space and - _ / # are allowed';
+    }
+    if (!quoteDate) e.quoteDate = 'Quote date is required';
+    if (!expireDate) e.expireDate = 'Expire date is required';
+    else if (quoteDate && expireDate < quoteDate) e.expireDate = 'Expire date cannot be before quote date';
+
+    if (!projectName.trim()) e.projectName = 'Project name is required';
+    else if (!TEXT_RE.test(projectName.trim())) e.projectName = 'Only letters, numbers, space and . , & - _ / ( ) are allowed';
+    return e;
+  };
+
+  const canSaveDraft = Object.keys(draftErrors()).length === 0;
+
+  const handleSaveDraft = async () => {
+    if (!canSaveDraft) return;
+
+    setIsDraftSaving(true);
+    try {
+      const payload = {
+        status: 'Draft',
+        customerId: selectedCustomer,
+        salesMan: Number(salesMan) || 1,
+        projectName: projectName,
+        referenceNo: referenceNo,
+        quoteDate: quoteDate || null,
+        expiryDate: expireDate || null,
+        items: [
+          {
+            itemName: itemName,
+            itemDescription: itemDescription,
+            length: Number(length) || 0,
+            width: Number(width) || 0,
+            height: Number(height) || 0,
+            quantity: Number(quantity) || 1,
+            plyType: Number(plyType?.replace(/\D/g, '')) || 3,
+            topGsm: Number(topPaperGsm) || 0,
+            linerGsm: Number(linerGsm) || 0,
+            fluteGsm: Number(fluteGsm) || 0,
+            topBf: Number(topPaperBf) || 0,
+            linerBf: Number(linerBf) || 0,
+            fluteBf: Number(fluteBf) || 0,
+            bf: Number(boardFactor) || 0,
+            topPaperNumber: Number(numberOfPaper) || 0,
+            twoPlyNumber: Number(numberOfTwoPly) || 0,
+            boardSize: boardSize,
+            boxWeight: parseFloat(boxWeight) || 0,
+            totalWeight: parseFloat(totalWeight) || 0,
+            boxType: boxType,
+            paperType: paperType,
+            boxSize: boxSize
+          }
+        ]
+      };
+
+      const url = isEditMode
+        ? `http://localhost:3000/api/v1/quotes/${id}`
+        : 'http://localhost:3000/api/v1/quotes';
+
+      const response = await fetch(url, {
+        method: isEditMode ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert('Quote saved as draft');
+        navigate('/sales/quotes');
+      } else {
+        alert(data.message || 'Failed to save draft');
+      }
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      alert('Error connecting to server to save draft');
+    } finally {
+      setIsDraftSaving(false);
+    }
+  };
+
   const handleSaveClick = () => {
-    const newErrors = {};
-
-    if (!selectedCustomer) newErrors.customer = "Customer is required";
-    if (!itemName) newErrors.itemName = "Item name is required";
-    if (!itemDescription) newErrors.itemDescription = "Item description is required";
-    if (!quantity) newErrors.quantity = "Quantity is required";
-
-    if (!boxType) newErrors.boxType = "Box type is required";
-    if (!plyType) newErrors.plyType = "Ply type is required";
-
-    if (!length) newErrors.length = "Length is required";
-    if (!width) newErrors.width = "Width is required";
-    if (!height) newErrors.height = "Height is required";
-
-    if (!topPaperGsm) newErrors.topPaperGsm = "Top GSM is required";
-    if (!linerGsm) newErrors.linerGsm = "Liner GSM is required";
-    if (!fluteGsm) newErrors.fluteGsm = "Flute GSM is required";
-
+    const newErrors = validateForm();
+    setAttempted(true);
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
       setShowPreview(true);
-    } else {
-      console.warn("Validation failed", newErrors);
+      return;
     }
+
+    // scroll to the first field with an error
+    setTimeout(() => {
+      document.querySelector('.border-red-500')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 60);
   };
 
   const handleConfirmOrder = async () => {
@@ -485,16 +645,18 @@ const CreateQuotePage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
               <div className="md:col-span-2">
-                <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Reference# <span className="text-red-500">*</span></label>
-                <input type="text" value={referenceNo} onChange={(e) => setReferenceNo(e.target.value)} placeholder="Optional Reference" className="w-full border border-gray-200 rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm" />
+                <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Reference</label>
+                <input type="text" value={referenceNo} maxLength={LIMITS.REF_MAX} onChange={(e) => setReferenceNo(noLeadingSpace(e.target.value))} placeholder="Optional Reference" className={inputCls('referenceNo')} />
+                {errMsg('referenceNo')}
               </div>
               <div className="md:col-span-2">
                 <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Quote Date</label>
-                <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm" />
+                <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} className={inputCls('quoteDate')} />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Expire Date</label>
-                <input type="date" value={expireDate} onChange={(e) => setExpireDate(e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm" />
+                <input type="date" value={expireDate} min={quoteDate || undefined} onChange={(e) => setExpireDate(e.target.value)} className={inputCls('expireDate')} />
+                {errMsg('expireDate')}
               </div>
 
               <div className="md:col-span-3">
@@ -508,7 +670,8 @@ const CreateQuotePage = () => {
               </div>
               <div className="md:col-span-3">
                 <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Project Name</label>
-                <input type="text" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="Project name" className="w-full border border-gray-200 rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm" />
+                <input type="text" value={projectName} maxLength={LIMITS.PROJECT_MAX} onChange={(e) => setProjectName(noLeadingSpace(e.target.value))} placeholder="Project name" className={inputCls('projectName')} />
+                {errMsg('projectName')}
               </div>
             </div>
           </div>
@@ -535,18 +698,18 @@ const CreateQuotePage = () => {
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
                   <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Item Name <span className="text-red-500">*</span></label>
-                  <input type="text" value={itemName} onChange={(e) => { setItemName(e.target.value); if (errors.itemName) setErrors({ ...errors, itemName: null }); }} className={`w-full border ${errors.itemName ? 'border-red-500' : 'border-gray-200'} rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm`} />
-                  {errors.itemName && <p className="text-red-500 text-[11px] mt-1">{errors.itemName}</p>}
+                  <input type="text" value={itemName} maxLength={LIMITS.NAME_MAX} onChange={(e) => setItemName(noLeadingSpace(e.target.value))} className={inputCls('itemName')} />
+                  {errMsg('itemName')}
                 </div>
                 <div className="md:col-span-3">
                   <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Item Description <span className="text-red-500">*</span></label>
-                  <input type="text" value={itemDescription} onChange={(e) => { setItemDescription(e.target.value); if (errors.itemDescription) setErrors({ ...errors, itemDescription: null }); }} className={`w-full border ${errors.itemDescription ? 'border-red-500' : 'border-gray-200'} rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm`} />
-                  {errors.itemDescription && <p className="text-red-500 text-[11px] mt-1">{errors.itemDescription}</p>}
+                  <input type="text" value={itemDescription} maxLength={LIMITS.DESC_MAX} onChange={(e) => setItemDescription(noLeadingSpace(e.target.value))} className={inputCls('itemDescription')} />
+                  {errMsg('itemDescription')}
                 </div>
                 <div>
                   <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Quantity <span className="text-red-500">*</span></label>
-                  <input type="number" value={quantity} onChange={(e) => { setQuantity(e.target.value); if (errors.quantity) setErrors({ ...errors, quantity: null }); }} className={`w-full border ${errors.quantity ? 'border-red-500' : 'border-gray-200'} rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm`} />
-                  {errors.quantity && <p className="text-red-500 text-[11px] mt-1">{errors.quantity}</p>}
+                  <input type="text" inputMode="numeric" value={quantity} onChange={(e) => setQuantity(digitsOnly(e.target.value, 7))} className={inputCls('quantity')} />
+                  {errMsg('quantity')}
                 </div>
               </div>
             </div>
@@ -614,8 +777,9 @@ const CreateQuotePage = () => {
                 <div>
                   <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Print Type <span className="text-red-500">*</span></label>
                   <div className="relative">
-                    <select className="w-full border border-gray-200 rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm appearance-none">
-                      <option>Plain</option>
+                    <select value={printType} onChange={(e) => setPrintType(e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm appearance-none">
+                      <option value="Plain">Plain</option>
+                      <option value="No Print">No Print</option>
                     </select>
                     <ChevronDown className="absolute right-3 top-3 w-4 h-4 text-[#1a233a] pointer-events-none" />
                   </div>
@@ -631,30 +795,20 @@ const CreateQuotePage = () => {
                 <div className="flex-1 h-px bg-[#f97316]/15 ml-1"></div>
               </div>
               <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Length <span className="text-red-500">*</span></label>
-                  <div className="relative">
-                    <input type="text" value={length} onChange={(e) => { setLength(e.target.value); if (errors.length) setErrors({ ...errors, length: null }); }} placeholder="0" className={`w-full border ${errors.length ? 'border-red-500' : 'border-gray-200'} rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm`} />
-                    <span className="absolute right-3 top-2.5 text-[11px] text-gray-400 font-medium">cm</span>
+                {[
+                  ['length', 'Length', length, setLength],
+                  ['width', 'Width', width, setWidth],
+                  ['height', 'Height', height, setHeight],
+                ].map(([key, label, val, setter]) => (
+                  <div key={key}>
+                    <label className="block text-[13px] font-bold text-[#1a233a] mb-2">{label} <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <input type="text" inputMode="decimal" maxLength={7} value={val} onChange={(e) => setter(cleanDecimal(e.target.value))} placeholder="0" className={inputCls(key)} />
+                      <span className="absolute right-3 top-2.5 text-[11px] text-gray-400 font-medium">cm</span>
+                    </div>
+                    {errMsg(key)}
                   </div>
-                  {errors.length && <p className="text-red-500 text-[11px] mt-1">{errors.length}</p>}
-                </div>
-                <div>
-                  <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Width <span className="text-red-500">*</span></label>
-                  <div className="relative">
-                    <input type="text" value={width} onChange={(e) => { setWidth(e.target.value); if (errors.width) setErrors({ ...errors, width: null }); }} placeholder="0" className={`w-full border ${errors.width ? 'border-red-500' : 'border-gray-200'} rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm`} />
-                    <span className="absolute right-3 top-2.5 text-[11px] text-gray-400 font-medium">cm</span>
-                  </div>
-                  {errors.width && <p className="text-red-500 text-[11px] mt-1">{errors.width}</p>}
-                </div>
-                <div>
-                  <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Height <span className="text-red-500">*</span></label>
-                  <div className="relative">
-                    <input type="text" value={height} onChange={(e) => { setHeight(e.target.value); if (errors.height) setErrors({ ...errors, height: null }); }} placeholder="0" className={`w-full border ${errors.height ? 'border-red-500' : 'border-gray-200'} rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm`} />
-                    <span className="absolute right-3 top-2.5 text-[11px] text-gray-400 font-medium">cm</span>
-                  </div>
-                  {errors.height && <p className="text-red-500 text-[11px] mt-1">{errors.height}</p>}
-                </div>
+                ))}
               </div>
             </div>
 
@@ -666,33 +820,22 @@ const CreateQuotePage = () => {
                 <div className="flex-1 h-px bg-[#16a34a]/15 ml-1"></div>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Top Paper <span className="text-red-500">*</span></label>
-                  <div className="flex items-center space-x-2">
-                    <input type="text" placeholder="GSM" value={topPaperGsm} onChange={(e) => { setTopPaperGsm(e.target.value); if (errors.topPaperGsm) setErrors({ ...errors, topPaperGsm: null }); }} className={`w-full border ${errors.topPaperGsm ? 'border-red-500' : 'border-gray-200'} rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm`} />
-                    <span className="text-gray-400 font-bold">/</span>
-                    <input type="text" placeholder="BF" value={topPaperBf} onChange={(e) => setTopPaperBf(e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm" />
+                {[
+                  ['Top Paper', 'topPaperGsm', topPaperGsm, setTopPaperGsm, 'topPaperBf', topPaperBf, setTopPaperBf],
+                  ['Liner', 'linerGsm', linerGsm, setLinerGsm, 'linerBf', linerBf, setLinerBf],
+                  ['Flute', 'fluteGsm', fluteGsm, setFluteGsm, 'fluteBf', fluteBf, setFluteBf],
+                ].map(([label, gKey, gVal, setG, bKey, bVal, setB]) => (
+                  <div key={gKey}>
+                    <label className="block text-[13px] font-bold text-[#1a233a] mb-2">{label} <span className="text-red-500">*</span></label>
+                    <div className="flex items-center space-x-2">
+                      <input type="text" inputMode="numeric" maxLength={3} placeholder="GSM" value={gVal} onChange={(e) => setG(digitsOnly(e.target.value, 3))} className={inputCls(gKey)} />
+                      <span className="text-gray-400 font-bold">/</span>
+                      <input type="text" inputMode="numeric" maxLength={2} placeholder="BF" value={bVal} onChange={(e) => setB(digitsOnly(e.target.value, 2))} className={inputCls(bKey)} />
+                    </div>
+                    {errMsg(gKey)}
+                    {errMsg(bKey)}
                   </div>
-                  {errors.topPaperGsm && <p className="text-red-500 text-[11px] mt-1">{errors.topPaperGsm}</p>}
-                </div>
-                <div>
-                  <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Liner <span className="text-red-500">*</span></label>
-                  <div className="flex items-center space-x-2">
-                    <input type="text" placeholder="GSM" value={linerGsm} onChange={(e) => { setLinerGsm(e.target.value); if (errors.linerGsm) setErrors({ ...errors, linerGsm: null }); }} className={`w-full border ${errors.linerGsm ? 'border-red-500' : 'border-gray-200'} rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm`} />
-                    <span className="text-gray-400 font-bold">/</span>
-                    <input type="text" placeholder="BF" value={linerBf} onChange={(e) => setLinerBf(e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm" />
-                  </div>
-                  {errors.linerGsm && <p className="text-red-500 text-[11px] mt-1">{errors.linerGsm}</p>}
-                </div>
-                <div>
-                  <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Flute <span className="text-red-500">*</span></label>
-                  <div className="flex items-center space-x-2">
-                    <input type="text" placeholder="GSM" value={fluteGsm} onChange={(e) => { setFluteGsm(e.target.value); if (errors.fluteGsm) setErrors({ ...errors, fluteGsm: null }); }} className={`w-full border ${errors.fluteGsm ? 'border-red-500' : 'border-gray-200'} rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm`} />
-                    <span className="text-gray-400 font-bold">/</span>
-                    <input type="text" placeholder="BF" value={fluteBf} onChange={(e) => setFluteBf(e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm" />
-                  </div>
-                  {errors.fluteGsm && <p className="text-red-500 text-[11px] mt-1">{errors.fluteGsm}</p>}
-                </div>
+                ))}
               </div>
             </div>
 
@@ -825,60 +968,62 @@ const CreateQuotePage = () => {
           </div>
 
           {/* Section 6: Print Specifications */}
-          <div className="bg-white px-6 py-4 rounded-2xl border border-gray-100 shadow-sm">
-            <div className="flex items-start mb-4">
-              <div className="w-10 h-10 bg-[#15b79e] rounded-xl flex items-center justify-center text-white mr-4 shadow-sm flex-shrink-0">
-                <Palette className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-[#1a233a]">Print Specifications</h3>
-                <p className="text-xs text-gray-400 mt-1">Required for printed boxes</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Number of Colors <span className="text-red-500">*</span></label>
-                <div className="relative">
-                  <span className="absolute left-4 top-3 text-gray-400">
-                    <Palette className="w-4 h-4" />
-                  </span>
-                  <input type="text" defaultValue="" className="w-full min-w-0 border border-gray-200 rounded-md pl-10 pr-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm" />
+          {printType !== 'No Print' && (
+            <div className="bg-white px-6 py-4 rounded-2xl border border-gray-100 shadow-sm">
+              <div className="flex items-start mb-4">
+                <div className="w-10 h-10 bg-[#15b79e] rounded-xl flex items-center justify-center text-white mr-4 shadow-sm flex-shrink-0">
+                  <Palette className="w-5 h-5" />
                 </div>
-              </div>
-              <div>
-                <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Print Area <span className="text-red-500">*</span></label>
-                <div className="relative">
-                  <span className="absolute left-4 top-3 text-gray-400">
-                    <Layers className="w-4 h-4" />
-                  </span>
-                  <input type="text" defaultValue="" className="w-full min-w-0 border border-gray-200 rounded-md pl-10 pr-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm" />
+                <div>
+                  <h3 className="text-xl font-bold text-[#1a233a]">Print Specifications</h3>
+                  <p className="text-xs text-gray-400 mt-1">Required for printed boxes</p>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Artwork Upload <span className="text-red-500">*</span></label>
-                <div className="border-2 border-dashed border-[#a3c2fa] rounded-lg p-4 flex items-center bg-white cursor-pointer hover:bg-gray-50 transition-colors">
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
-                    <UploadCloud className="w-5 h-5 text-gray-400" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-[#1a233a]">Drop artwork or click to upload</p>
-                    <p className="text-[10px] text-gray-400 font-medium">PDF, AI, PSD, PNG or JPG up to 25 MB</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Number of Colors <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-3 text-gray-400">
+                      <Palette className="w-4 h-4" />
+                    </span>
+                    <input type="text" defaultValue="" className="w-full min-w-0 border border-gray-200 rounded-md pl-10 pr-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm" />
                   </div>
                 </div>
-              </div>
+                <div>
+                  <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Print Area <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-3 text-gray-400">
+                      <Layers className="w-4 h-4" />
+                    </span>
+                    <input type="text" defaultValue="" className="w-full min-w-0 border border-gray-200 rounded-md pl-10 pr-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm" />
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Printing Notes</label>
-                <textarea
-                  rows="3"
-                  defaultValue=""
-                  className="w-full border border-gray-200 rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm resize-none h-[76px]"
-                ></textarea>
+                <div>
+                  <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Artwork Upload <span className="text-red-500">*</span></label>
+                  <div className="border-2 border-dashed border-[#a3c2fa] rounded-lg p-4 flex items-center bg-white cursor-pointer hover:bg-gray-50 transition-colors">
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                      <UploadCloud className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-[#1a233a]">Drop artwork or click to upload</p>
+                      <p className="text-[10px] text-gray-400 font-medium">PDF, AI, PSD, PNG or JPG up to 25 MB</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[13px] font-bold text-[#1a233a] mb-2">Printing Notes</label>
+                  <textarea
+                    rows="3"
+                    defaultValue=""
+                    className="w-full border border-gray-200 rounded-md px-3 py-2 text-[13px] text-[#1a233a] focus:outline-none focus:border-blue-500 bg-white shadow-sm resize-none h-[76px]"
+                  ></textarea>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
 
         </div>
@@ -892,9 +1037,15 @@ const CreateQuotePage = () => {
         >
           Cancel
         </button>
-        <button className="px-4 py-1.5 rounded-lg bg-gray-100 text-[13px] font-semibold text-gray-700 hover:bg-gray-200 transition-colors flex items-center shadow-sm">
+        <button
+          type="button"
+          onClick={handleSaveDraft}
+          disabled={!canSaveDraft || isDraftSaving}
+          title={canSaveDraft ? '' : 'Fill Customer Selection and Quote Details (Quote Date, Expire Date, Project Name) to save a draft'}
+          className="px-4 py-1.5 rounded-lg bg-gray-100 text-[13px] font-semibold text-gray-700 hover:bg-gray-200 transition-colors flex items-center shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-100"
+        >
           <Bookmark className="w-3.5 h-3.5 mr-1.5 text-gray-500" />
-          Save Draft
+          {isDraftSaving ? 'Saving...' : 'Save Draft'}
         </button>
         <button
           onClick={handleSaveClick}
