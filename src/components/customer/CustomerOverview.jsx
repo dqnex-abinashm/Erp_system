@@ -205,7 +205,7 @@ const PaymentDetails = ({
 
     return (
 
-        <div className="bg-white rounded-[12px] border border-gray-100 shadow-sm p-5">
+        <div className="bg-white rounded-[12px] border border-gray-100 shadow-sm p-5 flex flex-col h-full">
 
             <div className="border-b border-gray-100 pb-3 mb-4">
 
@@ -216,7 +216,8 @@ const PaymentDetails = ({
             </div>
 
 
-            <div className="space-y-3 mt-[44px]">
+            {/* rows start level with "Customer Type" and end level with "MSME" */}
+            <div className="flex-1 flex flex-col justify-between mt-[60px]">
 
                 <InfoRow
                     label="Sale Region"

@@ -773,7 +773,8 @@ const CustomerDetailsPage = () => {
                                             {formatCurrency(
                                                 item.receivable ??
                                                 item.openingBalance ??
-                                                0
+                                                0,
+                                                item.currencyCode
                                             )}
 
                                         </span>
@@ -980,11 +981,28 @@ const LoadingTab = () => {
 // HELPERS
 // =====================================================
 
-function formatCurrency(value) {
+const CURRENCY_SYMBOLS = {
+    INR: '₹',
+    USD: '$',
+    EUR: '€',
+    GBP: '£',
+    AED: 'AED ',
+    AUD: 'A$',
+    CAD: 'C$'
+};
 
-    return `₹${Number(
+function formatCurrency(value, currencyCode = 'INR') {
+
+    const code = currencyCode || 'INR';
+
+    const symbol =
+        CURRENCY_SYMBOLS[code] !== undefined
+            ? CURRENCY_SYMBOLS[code]
+            : `${code} `;
+
+    return `${symbol}${Number(
         value || 0
-    ).toLocaleString('en-IN')}`;
+    ).toLocaleString(code === 'INR' ? 'en-IN' : 'en-US')}`;
 }
 
 
