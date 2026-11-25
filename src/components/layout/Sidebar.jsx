@@ -35,6 +35,48 @@ const sidebarItems = [
   { name: 'Report',          icon: FileText,        path: '/report' },
 ];
 
+/*
+ * The logo image (CORRNEX wordmark) is ~2170 x 724 px with white padding around it.
+ * These values crop that padding in CSS so the logo fills the header nicely.
+ * If you trim the PNG yourself, set the crops to 0 and size the <img> directly.
+ */
+const LOGO_W = 2170;
+const LOGO_H = 724;
+// Full wordmark region (C + ORRNEX)
+const FULL = { x: 280, y: 150, w: 1610, h: 400 };
+// Only the "C" mark region (used when sidebar is collapsed)
+const MARK = { x: 285, y: 160, w: 370, h: 380 };
+
+// Renders a cropped region of the logo image at a given display height
+const CroppedLogo = ({ region, height }) => {
+  const scale = height / region.h;
+  return (
+    <div
+      style={{
+        width: region.w * scale,
+        height,
+        overflow: 'hidden',
+        position: 'relative',
+        flexShrink: 0,
+      }}
+    >
+      <img
+        src={logoImg}
+        alt="Corrnex"
+        draggable={false}
+        style={{
+          position: 'absolute',
+          left: -region.x * scale,
+          top: -region.y * scale,
+          width: LOGO_W * scale,
+          height: LOGO_H * scale,
+          maxWidth: 'none',
+        }}
+      />
+    </div>
+  );
+};
+
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -58,34 +100,13 @@ const Sidebar = () => {
           textDecoration: 'none'
         }}
       >
-        {/* Logo icon box */}
-        <div
-          className="flex items-center justify-center flex-shrink-0 overflow-hidden"
-          style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '8px',
-          }}
-        >
-          <img src={logoImg} alt="Logo" className="w-full h-full object-cover" />
-        </div>
-
-        {/* Brand text */}
-        <div
-          className="whitespace-nowrap flex flex-col justify-center"
-          style={{
-            marginLeft: collapsed ? '0px' : '-4px',
-            opacity: collapsed ? 0 : 1,
-            width: collapsed ? '0px' : 'auto',
-            overflow: 'hidden',
-            transition: 'opacity 0.2s ease, width 0.3s ease, margin-left 0.3s ease',
-            pointerEvents: collapsed ? 'none' : 'auto',
-          }}
-        >
-          <div className="text-[20px] font-extrabold leading-tight tracking-tight">
-            <span className="text-[#132A5E]">ORR</span><span className="text-[#f97316]">NEX</span>
-          </div>
-        </div>
+        {collapsed ? (
+          // Collapsed: show only the "C" mark
+          <CroppedLogo region={MARK} height={32} />
+        ) : (
+          // Expanded: show the full CORRNEX logo
+          <CroppedLogo region={FULL} height={34} />
+        )}
       </Link>
 
       <nav
