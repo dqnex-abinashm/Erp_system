@@ -8,3 +8,4 @@ dist-ssr
 .github
 npm-debug.log*
 *.md
+docker-compose*.yml
