@@ -77,4 +77,23 @@ export const authApi = {
       throw new Error(err.message || 'Failed to resend OTP');
     }
   },
+
+  /**
+   * Logout active backend session
+   */
+  logout: async (token) => {
+    try {
+      if (!token) return;
+      await axios.post(
+        `${BASE_URL}/auth/logout`,
+        { token },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 5000,
+        }
+      );
+    } catch {
+      // Ignore network errors on logout
+    }
+  },
 };

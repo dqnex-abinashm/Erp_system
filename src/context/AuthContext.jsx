@@ -76,6 +76,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    const currentToken = token || localStorage.getItem('erp_auth_token');
+    if (currentToken) {
+      authApi.logout(currentToken);
+    }
     setUser(null);
     setToken(null);
     localStorage.removeItem('erp_auth_user');
